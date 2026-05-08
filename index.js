@@ -308,21 +308,11 @@ const initTables = () => {
         if (action === "modifier" || action === "enregistrer") {
             const editableCells = Array.from(row.cells).slice(0, -1);
             const isEditing = row.dataset.editing === "true";
-            if (!isEditing) {
-                row.dataset.originalValues = JSON.stringify(editableCells.map((cell) => cell.innerHTML));
-            }
             editableCells.forEach((cell) => {
                 cell.contentEditable = isEditing ? "false" : "true";
             });
             row.dataset.editing = isEditing ? "false" : "true";
             actionButton.textContent = isEditing ? "Modifier" : "Enregistrer";
-            if (!isEditing && !row.querySelector("[data-cancel-edit-row]")) {
-                actionButton.insertAdjacentHTML("afterend", `<button class="mini-btn" type="button" data-cancel-edit-row>Annuler</button>`);
-            }
-            if (isEditing) {
-                delete row.dataset.originalValues;
-                row.querySelector("[data-cancel-edit-row]")?.remove();
-            }
             showToast(isEditing ? "Modification enregistrée" : `Modification de ${rowTitle}`);
             return;
         }
