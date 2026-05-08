@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MenuseriePro | Notifications</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="notifications">
+    <!-- Layout principal: la sidebar et la topbar sont injectees par index.js -->
+    <div class="app-shell">
+        <aside class="sidebar" data-sidebar></aside>
+        <div class="app-main">
+            <header class="topbar" data-topbar></header>
+            <main class="page-content">
+                <section class="page-title">
+                    <!-- En-tete des alertes -->
+                    <div><p class="eyebrow">Alertes</p><h1>Notifications</h1><p>Commandes, stock, argent et rappels importants.</p><small class="page-update">Mis a jour: 08/05/2026</small></div>
+                    <button class="btn btn-secondary" data-mark-read>Marquer comme lu</button>
+                </section>
+                <!-- Liste des notifications recentes -->
+                <section class="notification-page-list">
+                    <article class="notification-item unread"><span class="alert-dot"></span><div><h3>Nouvelle commande</h3><p>Commande #MP-241 ajoutee par Studio Nova.</p></div><small>Il y a 8 min</small></article>
+                    <article class="notification-item unread"><span class="alert-dot danger"></span><div><h3>Stock faible</h3><p>Le vernis mat est sous le seuil minimum.</p></div><small>Il y a 32 min</small></article>
+                    <article class="notification-item"><span class="alert-dot"></span><div><h3>Rappel</h3><p>Livraison cuisine Kouadio prevue demain.</p></div><small>Aujourd'hui</small></article>
+                    <article class="notification-item"><span class="alert-dot"></span><div><h3>Message important</h3><p>Inventaire general aujourd'hui a 09h.</p></div><small>Aujourd'hui</small></article>
+                </section>
+            </main>
+        </div>
+    </div>
+    <script src="index.js"></script>
+</body>
+</html>

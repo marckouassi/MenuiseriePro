@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MenuseriePro | Produits</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="produits">
+    <!-- Layout principal: la sidebar et la topbar sont injectees par index.js -->
+    <div class="app-shell">
+        <aside class="sidebar" data-sidebar></aside>
+        <div class="app-main">
+            <header class="topbar" data-topbar></header>
+            <main class="page-content">
+                <section class="page-title">
+                    <!-- En-tete de la page produits -->
+                    <div><p class="eyebrow">Catalogue</p><h1>Produits</h1><p>Listez vos meubles, portes, lits, cuisines et prix.</p><small class="page-update">Mis a jour: 08/05/2026</small></div>
+                    <button class="btn btn-primary" data-open-modal="productModal">Ajouter produit</button>
+                </section>
+                <!-- Cartes des categories de produits -->
+                <section class="product-admin-grid">
+                    <article class="catalog-card"><span class="catalog-visual furniture"></span><h3>Meubles</h3><p>18 produits</p><strong>A partir de 80 000 FCFA</strong></article>
+                    <article class="catalog-card"><span class="catalog-visual cabinet"></span><h3>Armoires</h3><p>12 produits</p><strong>A partir de 180 000 FCFA</strong></article>
+                    <article class="catalog-card"><span class="catalog-visual table"></span><h3>Tables</h3><p>22 produits</p><strong>A partir de 60 000 FCFA</strong></article>
+                    <article class="catalog-card"><span class="catalog-visual bed"></span><h3>Lits</h3><p>9 produits</p><strong>A partir de 240 000 FCFA</strong></article>
+                    <article class="catalog-card"><span class="catalog-visual kitchen"></span><h3>Cuisines</h3><p>7 produits</p><strong>Sur devis</strong></article>
+                    <article class="catalog-card"><span class="catalog-visual door"></span><h3>Portes</h3><p>16 produits</p><strong>A partir de 75 000 FCFA</strong></article>
+                </section>
+                <!-- Tableau des produits disponibles -->
+                <section class="panel">
+                    <div class="panel-header"><div><h2>Liste des produits</h2><p>Prix, photos et quantites disponibles.</p></div></div>
+                    <div class="table-wrap">
+                        <table data-table>
+                            <thead><tr><th>Produit</th><th>Categorie</th><th>Prix</th><th>Quantite</th><th>Image</th><th>Actions</th></tr></thead>
+                            <tbody>
+                                <tr><td>Meuble TV Curve</td><td>Meubles TV</td><td>210 000 FCFA</td><td>6</td><td>Photo ajoutee</td><td><button class="mini-btn">Modifier</button><button class="mini-btn danger" data-delete-row>Supprimer</button></td></tr>
+                                <tr><td>Porte interieure</td><td>Portes</td><td>75 000 FCFA</td><td>14</td><td>Photo ajoutee</td><td><button class="mini-btn">Modifier</button><button class="mini-btn danger" data-delete-row>Supprimer</button></td></tr>
+                                <tr><td>Lit coffre</td><td>Lits</td><td>280 000 FCFA</td><td>3</td><td>Photo a mettre</td><td><button class="mini-btn">Modifier</button><button class="mini-btn danger" data-delete-row>Supprimer</button></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+    <!-- Modale pour ajouter un produit -->
+    <dialog class="modal" id="productModal">
+        <form method="dialog" class="modal-card" data-simple-toast>
+            <div class="panel-header"><h2>Ajouter produit</h2><button class="icon-btn" value="cancel" type="submit" aria-label="Fermer"><i data-lucide="x"></i></button></div>
+            <label>Nom<input required placeholder="Nom du produit"></label>
+            <label>Categorie<select><option>Meubles</option><option>Armoires</option><option>Tables</option><option>Lits</option><option>Cuisines</option><option>Portes</option><option>Meubles TV</option></select></label>
+            <label>Prix<input required placeholder="Ex: 120 000 FCFA"></label>
+            <label>Quantite<input type="number" min="0" required placeholder="0"></label>
+            <label>Image<input type="file" accept="image/*"></label>
+            <button class="btn btn-primary" type="submit">Enregistrer</button>
+        </form>
+    </dialog>
+    <script src="index.js"></script>
+</body>
+</html>

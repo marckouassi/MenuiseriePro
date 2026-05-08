@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MenuseriePro | Employes</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="employes">
+    <!-- Layout principal: la sidebar et la topbar sont injectees par index.js -->
+    <div class="app-shell">
+        <aside class="sidebar" data-sidebar></aside>
+        <div class="app-main">
+            <header class="topbar" data-topbar></header>
+            <main class="page-content">
+                <!-- En-tete de la page employes -->
+                <section class="page-title">
+                    <div>
+                        <p class="eyebrow">Equipe</p>
+                        <h1>Employes</h1>
+                        <p>Voyez les roles, salaires, presence et taches de chacun.</p>
+                        <small class="page-update">Mis a jour: 08/05/2026</small>
+                    </div>
+                    <button class="btn btn-primary" data-open-modal="employeeModal">Ajouter employe</button>
+                </section>
+
+                <!-- Tableau de suivi du personnel -->
+                <section class="panel">
+                    <div class="table-wrap">
+                        <table data-table>
+                            <thead>
+                                <tr>
+                                    <th>Employe</th>
+                                    <th>Role</th>
+                                    <th>Salaire</th>
+                                    <th>Presence</th>
+                                    <th>Taches assignees</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Awa Diarra</td><td>Chef atelier</td><td>420 000 FCFA</td><td><span class="status done">Present</span></td><td>Controle qualite</td><td><button class="mini-btn">Voir</button></td></tr>
+                                <tr><td>Yao Serge</td><td>Menuisier</td><td>280 000 FCFA</td><td><span class="status done">Present</span></td><td>Cuisine Kouadio</td><td><button class="mini-btn">Voir</button></td></tr>
+                                <tr><td>Nadia B.</td><td>Commerciale</td><td>310 000 FCFA</td><td><span class="status pending">Absent</span></td><td>Relances devis</td><td><button class="mini-btn">Voir</button></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- Modale pour ajouter un employe -->
+    <dialog class="modal" id="employeeModal">
+        <form method="dialog" class="modal-card" data-simple-toast>
+            <div class="panel-header"><h2>Ajouter employe</h2><button class="icon-btn" value="cancel" type="submit" aria-label="Fermer"><i data-lucide="x"></i></button></div>
+            <label>Nom<input required placeholder="Nom"></label>
+            <label>Role<input required placeholder="Ex: Menuisier, vendeur, chef atelier"></label>
+            <label>Salaire<input required placeholder="Ex: 280 000 FCFA"></label>
+            <label>Taches<textarea placeholder="Taches assignees"></textarea></label>
+            <button class="btn btn-primary" type="submit">Enregistrer</button>
+        </form>
+    </dialog>
+    <script src="index.js"></script>
+</body>
+</html>
