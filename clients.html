@@ -3,30 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MenuseriePro | Clients</title>
+    <title>MenuiseriePro | Clients</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body data-page="clients">
-    <!-- Layout principal: la sidebar et la topbar sont injectees par index.js -->
+    <!-- Layout principal: la sidebar et la topbar sont injectées par index.js -->
     <div class="app-shell">
         <aside class="sidebar" data-sidebar></aside>
         <div class="app-main">
             <header class="topbar" data-topbar></header>
             <main class="page-content">
-                <!-- En-tete de la page clients -->
+                <!-- En-tête de la page clients -->
                 <section class="page-title">
                     <div>
                         <p class="eyebrow">Clients</p>
                         <h1>Clients</h1>
-                        <p>Retrouvez les contacts clients et leurs commandes au meme endroit.</p>
-                        <small class="page-update">Mis a jour: 08/05/2026</small>
+                        <p>Retrouvez les contacts clients et leurs commandes au même endroit.</p>
+                        <small class="page-update">Mis à jour : 08/05/2026</small>
                     </div>
-                    <button class="btn btn-primary" data-open-modal="clientModal">Ajouter client</button>
+                    <button class="btn btn-primary" data-open-modal="clientModal">Ajouter un client</button>
                 </section>
 
                 <!-- Filtres rapides pour retrouver un client -->
                 <section class="toolbar">
-                    <input type="search" data-table-search placeholder="Chercher nom, email, telephone...">
+                    <input type="search" data-table-search placeholder="Chercher un nom, un email, un téléphone...">
                     <select data-table-filter>
                         <option value="">Tous les types</option>
                         <option>Particulier</option>
@@ -37,11 +37,11 @@
                 <!-- Tableau principal des clients -->
                 <section class="panel">
                     <div class="table-wrap">
-                        <table border="2">
+                        <table data-table>
                             <thead>
                                 <tr>
                                     <th>Client</th>
-                                    <th>Telephone</th>
+                                    <th>Téléphone</th>
                                     <th>Email</th>
                                     <th>Adresse</th>
                                     <th>Historique</th>
@@ -64,12 +64,15 @@
     <!-- Modale pour ajouter un nouveau client -->
     <dialog class="modal" id="clientModal">
         <form method="dialog" class="modal-card" data-simple-toast>
-            <div class="panel-header"><h2>Ajouter client</h2><button class="icon-btn" value="cancel" type="submit" aria-label="Fermer"><i data-lucide="x"></i></button></div>
-            <label>Nom<input required placeholder="Nom et prenom"></label>
-            <label>Telephone<input required placeholder="+225 ..."></label>
+            <div class="panel-header"><h2>Ajouter un client</h2><button class="icon-btn" value="cancel" type="submit" aria-label="Fermer"><i data-lucide="x"></i></button></div>
+            <label>Nom<input required placeholder="Nom et prénom"></label>
+            <label>Téléphone<input required placeholder="+225 ..."></label>
             <label>Email<input type="email" required placeholder="email@exemple.com"></label>
             <label>Adresse<input required placeholder="Adresse"></label>
-            <button class="btn btn-primary" type="submit">Enregistrer</button>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" value="cancel" type="submit">Annuler</button>
+                <button class="btn btn-primary" type="submit">Enregistrer</button>
+            </div>
         </form>
     </dialog>
     <script src="index.js"></script>

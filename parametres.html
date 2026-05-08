@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MenuseriePro | Parametres</title>
+    <title>MenuiseriePro | Paramètres</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body data-page="parametres">
@@ -16,15 +16,15 @@
                 <section class="page-title settings-hero">
                     <!-- En-tete de la page parametres -->
                     <div>
-                        <p class="eyebrow">Reglages</p>
-                        <h1>Parametres</h1>
-                        <p>Reglez le profil, les alertes, la securite et l'affichage de MenuseriePro.</p>
-                        <small class="page-update">Mis a jour: 08/05/2026</small>
+                        <p class="eyebrow">Réglages</p>
+                        <h1>Paramètres</h1>
+                        <p>Réglez le profil, les alertes, la sécurité et l'affichage de MenuiseriePro.</p>
+                        <small class="page-update">Mis à jour : 08/05/2026</small>
                     </div>
-                    <a class="btn btn-danger logout-main" href="login.html">
+                    <button class="btn btn-danger logout-main" type="button" data-logout>
                         <i data-lucide="log-out"></i>
-                        <span>Se deconnecter</span>
-                    </a>
+                        <span>Se déconnecter</span>
+                    </button>
                 </section>
 
                 <!-- Cartes de configuration du compte -->
@@ -37,13 +37,13 @@
                             </div>
                             <div class="profile-meta">
                                 <p class="settings-kicker">Profil utilisateur</p>
-                                <h2>Admin MenuseriePro</h2>
+                                <h2 data-user-name>Admin MenuiseriePro</h2>
                                 <span class="role-badge"><i data-lucide="shield-check"></i> Administrateur</span>
                             </div>
                             <div class="profile-details">
-                                <span><i data-lucide="mail"></i> admin@menuseriepro.ci</span>
+                                <span><i data-lucide="mail"></i> <span data-user-email>admin@menuiseriepro.ci</span></span>
                                 <span><i data-lucide="phone"></i> +225 07 48 26 15 90</span>
-                                <span><i data-lucide="building-2"></i> Gerant de l'atelier</span>
+                                <span><i data-lucide="building-2"></i> Gérant de l'atelier</span>
                             </div>
                             <button class="btn btn-primary" type="button" data-settings-action="Profil ouvert">
                                 <i data-lucide="user-pen"></i>
@@ -74,7 +74,7 @@
                                 <span class="setting-icon"><i data-lucide="shopping-bag"></i></span>
                                 <span>
                                     <strong>Alertes nouvelles commandes</strong>
-                                    <small>Prevenir quand une nouvelle commande arrive.</small>
+                                    <small>Prévenir quand une nouvelle commande arrive.</small>
                                 </span>
                                 <input class="switch-input" type="checkbox" checked>
                                 <span class="switch"></span>
@@ -91,8 +91,8 @@
                             <label class="setting-row">
                                 <span class="setting-icon"><i data-lucide="banknote"></i></span>
                                 <span>
-                                    <strong>Notifications financieres</strong>
-                                    <small>Suivre entrees, sorties et paiements clients.</small>
+                                    <strong>Notifications financières</strong>
+                                    <small>Suivre entrées, sorties et paiements clients.</small>
                                 </span>
                                 <input class="switch-input" type="checkbox">
                                 <span class="switch"></span>
@@ -101,7 +101,7 @@
                                 <span class="setting-icon"><i data-lucide="calendar-clock"></i></span>
                                 <span>
                                     <strong>Rappels importants</strong>
-                                    <small>Livraisons, rendez-vous et taches urgentes.</small>
+                                    <small>Livraisons, rendez-vous et tâches urgentes.</small>
                                 </span>
                                 <input class="switch-input" type="checkbox" checked>
                                 <span class="switch"></span>
@@ -112,8 +112,8 @@
                     <article class="settings-card span-2">
                         <div class="settings-card-head">
                             <div>
-                                <p class="settings-kicker">Confidentialite et securite</p>
-                                <h2>Securite du compte</h2>
+                                <p class="settings-kicker">Confidentialité et sécurité</p>
+                                <h2>Sécurité du compte</h2>
                             </div>
                             <img src="assets/icons/param%C3%A8tre.png" class="section-icon" alt="">
                         </div>
@@ -121,7 +121,7 @@
                             <button class="security-action" type="button" data-settings-action="Changement de mot de passe ouvert">
                                 <i data-lucide="key-round"></i>
                                 <span>
-                                    <strong>Changer mot de passe</strong>
+                                    <strong>Changer le mot de passe</strong>
                                     <small>Changer le code du compte administrateur.</small>
                                 </span>
                             </button>
@@ -129,29 +129,29 @@
                                 <i data-lucide="scan-face"></i>
                                 <span>
                                     <strong>Double authentification</strong>
-                                    <small>Ajouter un code de verification.</small>
+                                    <small>Ajouter un code de vérification.</small>
                                 </span>
                                 <input class="switch-input" type="checkbox" checked>
                                 <span class="switch"></span>
                             </label>
-                            <button class="security-action" type="button" data-settings-action="Confidentialite des donnees consultee">
+                            <button class="security-action" type="button" data-settings-action="Confidentialité des données consultée">
                                 <i data-lucide="database-lock"></i>
                                 <span>
-                                    <strong>Confidentialite des donnees</strong>
+                                    <strong>Confidentialité des données</strong>
                                     <small>Choisir qui voit les clients et les finances.</small>
                                 </span>
                             </button>
                             <button class="security-action" type="button" data-settings-action="Gestion des sessions ouverte">
                                 <i data-lucide="monitor-check"></i>
                                 <span>
-                                    <strong>Sessions connectees</strong>
-                                    <small>Voir les telephones et ordinateurs connectes.</small>
+                                    <strong>Sessions connectées</strong>
+                                    <small>Voir les téléphones et ordinateurs connectés.</small>
                                 </span>
                             </button>
-                            <button class="security-action" type="button" data-settings-action="Regles de securite ouvertes">
+                            <button class="security-action" type="button" data-settings-action="Règles de sécurité ouvertes">
                                 <i data-lucide="shield-ellipsis"></i>
                                 <span>
-                                    <strong>Regles de securite</strong>
+                                    <strong>Règles de sécurité</strong>
                                     <small>Verrouillage, journal et autorisations.</small>
                                 </span>
                             </button>
@@ -171,13 +171,13 @@
                                 <span class="setting-icon"><i data-lucide="sun-moon"></i></span>
                                 <span>
                                     <strong>Mode sombre / clair</strong>
-                                    <small>Changer entre clair et sombre.</small>
+                                    <small>Basculer entre le mode clair et le mode sombre.</small>
                                 </span>
-                                <button class="mini-icon-btn" type="button" data-theme-toggle aria-label="Changer le theme"><i data-lucide="refresh-cw"></i></button>
+                                <button class="mini-icon-btn" type="button" data-theme-toggle aria-label="Changer le thème"><i data-lucide="refresh-cw"></i></button>
                             </label>
-                            <div class="theme-swatches" aria-label="Personnalisation du theme">
+                            <div class="theme-swatches" aria-label="Personnalisation du thème">
                                 <button class="swatch active" style="--swatch: #11100e" type="button" aria-label="Couleur graphite"></button>
-                                <button class="swatch" style="--swatch: #486b57" type="button" aria-label="Couleur foret"></button>
+                                <button class="swatch" style="--swatch: #486b57" type="button" aria-label="Couleur forêt"></button>
                                 <button class="swatch" style="--swatch: #a7663f" type="button" aria-label="Couleur bois"></button>
                                 <button class="swatch" style="--swatch: #315d86" type="button" aria-label="Couleur atelier"></button>
                             </div>
@@ -186,7 +186,7 @@
                                 <select>
                                     <option>Vue simple</option>
                                     <option>Vue compacte</option>
-                                    <option>Vue detaillee</option>
+                                    <option>Vue détaillée</option>
                                 </select>
                             </label>
                         </div>
@@ -196,15 +196,15 @@
                         <div class="settings-card-head">
                             <div>
                                 <p class="settings-kicker">Session</p>
-                                <h2>Deconnexion</h2>
+                                <h2>Déconnexion</h2>
                             </div>
                             <i data-lucide="log-out" class="section-icon"></i>
                         </div>
-                        <p>Fermer le compte sur cet appareil et revenir a la connexion.</p>
-                        <a class="btn btn-danger btn-wide" href="login.html">
+                        <p>Fermer le compte sur cet appareil et revenir à la connexion.</p>
+                        <button class="btn btn-danger btn-wide" type="button" data-logout>
                             <i data-lucide="power"></i>
-                            Se deconnecter
-                        </a>
+                            Se déconnecter
+                        </button>
                     </article>
                 </section>
             </main>

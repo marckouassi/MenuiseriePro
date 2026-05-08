@@ -3,23 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MenuseriePro | Commandes</title>
+    <title>MenuiseriePro | Commandes</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body data-page="commandes">
-    <!-- Layout principal: la sidebar et la topbar sont injectees par index.js -->
+    <!-- Layout principal: la sidebar et la topbar sont injectées par index.js -->
     <div class="app-shell">
         <aside class="sidebar" data-sidebar></aside>
         <div class="app-main">
             <header class="topbar" data-topbar></header>
             <main class="page-content">
-                <!-- En-tete de la page commandes -->
+                <!-- En-tête de la page commandes -->
                 <section class="page-title">
                     <div>
                         <p class="eyebrow">Ventes</p>
                         <h1>Commandes clients</h1>
-                        <p>Notez les commandes, voyez l'etat et mettez a jour rapidement.</p>
-                        <small class="page-update">Mis a jour: 08/05/2026</small>
+                        <p>Notez les commandes, voyez l'état et mettez à jour rapidement.</p>
+                        <small class="page-update">Mis à jour : 08/05/2026</small>
                     </div>
                     <button class="btn btn-primary" data-open-modal="orderModal">Nouvelle commande</button>
                 </section>
@@ -29,8 +29,8 @@
                     <button class="active" data-status-filter="">Toutes</button>
                     <button data-status-filter="En attente">En attente</button>
                     <button data-status-filter="En cours">En cours</button>
-                    <button data-status-filter="Terminee">Terminee</button>
-                    <button data-status-filter="Livree">Livree</button>
+                    <button data-status-filter="Terminée">Terminée</button>
+                    <button data-status-filter="Livrée">Livrée</button>
                 </section>
 
                 <!-- Recherche simple dans les commandes -->
@@ -55,7 +55,7 @@
                             <tbody>
                                 <tr><td>Aminata Kone</td><td>Armoire 4 portes</td><td>420 000 FCFA</td><td>08/05/2026</td><td><span class="status pending">En attente</span></td><td><button class="mini-btn">Suivre</button><button class="mini-btn danger" data-delete-row>Supprimer</button></td></tr>
                                 <tr><td>Studio Nova</td><td>Comptoir accueil</td><td>950 000 FCFA</td><td>08/05/2026</td><td><span class="status progress">En cours</span></td><td><button class="mini-btn">Suivre</button><button class="mini-btn danger" data-delete-row>Supprimer</button></td></tr>
-                                <tr><td>Kouadio Marc</td><td>Cuisine complete</td><td>1 850 000 FCFA</td><td>07/05/2026</td><td><span class="status done">Livree</span></td><td><button class="mini-btn">Suivre</button><button class="mini-btn danger" data-delete-row>Supprimer</button></td></tr>
+                                <tr><td>Kouadio Marc</td><td>Cuisine complète</td><td>1 850 000 FCFA</td><td>07/05/2026</td><td><span class="status done">Livrée</span></td><td><button class="mini-btn">Suivre</button><button class="mini-btn danger" data-delete-row>Supprimer</button></td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -69,11 +69,14 @@
         <form method="dialog" class="modal-card" data-add-row="order">
             <div class="panel-header"><h2>Nouvelle commande</h2><button class="icon-btn" value="cancel" type="submit" aria-label="Fermer"><i data-lucide="x"></i></button></div>
             <label>Client<input name="client" required placeholder="Nom du client"></label>
-            <label>Produit<input name="produit" required placeholder="Produit demande"></label>
+            <label>Produit<input name="produit" required placeholder="Produit demandé"></label>
             <label>Prix<input name="prix" required placeholder="Ex: 250 000 FCFA"></label>
             <label>Date<input name="date" required type="date"></label>
-            <label>Statut<select name="statut"><option>En attente</option><option>En cours</option><option>Terminee</option><option>Livree</option></select></label>
-            <button class="btn btn-primary" type="submit">Enregistrer</button>
+            <label>Statut<select name="statut"><option>En attente</option><option>En cours</option><option>Terminée</option><option>Livrée</option></select></label>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" value="cancel" type="submit">Annuler</button>
+                <button class="btn btn-primary" type="submit">Enregistrer</button>
+            </div>
         </form>
     </dialog>
 

@@ -3,43 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MenuseriePro | Finances</title>
+    <title>MenuiseriePro | Finances</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body data-page="finances">
-    <!-- Layout principal: la sidebar et la topbar sont injectees par index.js -->
+    <!-- Layout principal: la sidebar et la topbar sont injectées par index.js -->
     <div class="app-shell">
         <aside class="sidebar" data-sidebar></aside>
         <div class="app-main">
             <header class="topbar" data-topbar></header>
             <main class="page-content">
-                <!-- En-tete de la page finances -->
+                <!-- En-tête de la page finances -->
                 <section class="page-title">
                     <div>
                         <p class="eyebrow">Argent</p>
                         <h1>Finances</h1>
-                        <p>Voyez les entrees, les sorties et le benefice de l'atelier.</p>
-                        <small class="page-update">Mis a jour: 08/05/2026</small>
+                        <p>Voyez les entrées, les sorties et le bénéfice de l'atelier.</p>
+                        <small class="page-update">Mis à jour : 08/05/2026</small>
                     </div>
-                    <button class="btn btn-primary" data-open-modal="transactionModal">Ajouter transaction</button>
+                    <button class="btn btn-primary" data-open-modal="transactionModal">Ajouter une transaction</button>
                 </section>
 
                 <!-- Chiffres rapides pour comprendre la situation -->
                 <section class="stat-grid compact">
                     <article class="stat-card"><span>Chiffre d'affaires</span><strong>14 850 000 FCFA</strong><small class="positive">+12.4%</small></article>
-                    <article class="stat-card"><span>Sorties d'argent</span><strong>3 180 000 FCFA</strong><small class="warning">A suivre</small></article>
-                    <article class="stat-card"><span>Benefice</span><strong>5 420 000 FCFA</strong><small class="positive">Stable</small></article>
+                    <article class="stat-card"><span>Sorties d'argent</span><strong>3 180 000 FCFA</strong><small class="warning">À suivre</small></article>
+                    <article class="stat-card"><span>Bénéfice</span><strong>5 420 000 FCFA</strong><small class="positive">Stable</small></article>
                     <article class="stat-card"><span>Transactions</span><strong>156</strong><small>Ce mois</small></article>
                 </section>
 
                 <!-- Graphiques et derniers mouvements financiers -->
                 <section class="dashboard-grid">
                     <article class="panel panel-large">
-                        <div class="panel-header"><div><h2>Ventes du mois</h2><p>Evolution des ventes.</p></div></div>
+                        <div class="panel-header"><div><h2>Ventes du mois</h2><p>Évolution des ventes.</p></div></div>
                         <div class="line-chart"><span style="--h:35%"></span><span style="--h:58%"></span><span style="--h:48%"></span><span style="--h:72%"></span><span style="--h:64%"></span><span style="--h:86%"></span></div>
                     </article>
                     <article class="panel">
-                        <div class="panel-header"><div><h2>Ou part l'argent</h2><p>Achats et charges.</p></div></div>
+                        <div class="panel-header"><div><h2>Où part l'argent</h2><p>Achats et charges.</p></div></div>
                         <div class="donut"><span>62%</span></div>
                     </article>
                     <article class="panel panel-large">
@@ -48,9 +48,9 @@
                             <table data-table>
                                 <thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Montant</th><th>Statut</th></tr></thead>
                                 <tbody>
-                                    <tr><td>08/05/2026</td><td>Recette</td><td>Cuisine complete</td><td>1 850 000 FCFA</td><td><span class="status done">Valide</span></td></tr>
-                                    <tr><td>08/05/2026</td><td>Depense</td><td>Achat chene</td><td>980 000 FCFA</td><td><span class="status progress">Comptabilise</span></td></tr>
-                                    <tr><td>07/05/2026</td><td>Recette</td><td>Armoire 4 portes</td><td>420 000 FCFA</td><td><span class="status done">Valide</span></td></tr>
+                                    <tr><td>08/05/2026</td><td>Recette</td><td>Cuisine complète</td><td>1 850 000 FCFA</td><td><span class="status done">Validé</span></td></tr>
+                                    <tr><td>08/05/2026</td><td>Dépense</td><td>Achat chêne</td><td>980 000 FCFA</td><td><span class="status progress">Comptabilisé</span></td></tr>
+                                    <tr><td>07/05/2026</td><td>Recette</td><td>Armoire 4 portes</td><td>420 000 FCFA</td><td><span class="status done">Validé</span></td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -60,14 +60,17 @@
         </div>
     </div>
 
-    <!-- Modale pour ajouter une entree ou une sortie d'argent -->
+    <!-- Modale pour ajouter une entrée ou une sortie d'argent -->
     <dialog class="modal" id="transactionModal">
         <form method="dialog" class="modal-card" data-simple-toast>
-            <div class="panel-header"><h2>Ajouter transaction</h2><button class="icon-btn" value="cancel" type="submit" aria-label="Fermer"><i data-lucide="x"></i></button></div>
-            <label>Type<select><option>Recette</option><option>Depense</option></select></label>
+            <div class="panel-header"><h2>Ajouter une transaction</h2><button class="icon-btn" value="cancel" type="submit" aria-label="Fermer"><i data-lucide="x"></i></button></div>
+            <label>Type<select><option>Recette</option><option>Dépense</option></select></label>
             <label>Description<input required placeholder="Description"></label>
             <label>Montant<input required placeholder="Montant"></label>
-            <button class="btn btn-primary" type="submit">Enregistrer</button>
+            <div class="modal-actions">
+                <button class="btn btn-secondary" value="cancel" type="submit">Annuler</button>
+                <button class="btn btn-primary" type="submit">Enregistrer</button>
+            </div>
         </form>
     </dialog>
     <script src="index.js"></script>
