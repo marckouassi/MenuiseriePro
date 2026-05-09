@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MenuiseriePro | Paiements</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="paiements">
+    <div class="app-shell">
+        <aside class="sidebar" data-sidebar></aside>
+        <div class="app-main">
+            <header class="topbar" data-topbar></header>
+            <main class="page-content">
+                <section class="page-title">
+                    <div>
+                        <p class="eyebrow">Encaissements</p>
+                        <h1>Paiements</h1>
+                        <p>Suivez les acomptes, les restes à payer et les commandes soldées.</p>
+                        <small class="page-update">Mis à jour automatiquement</small>
+                    </div>
+                </section>
+                <section class="toolbar">
+                    <input type="search" data-table-search placeholder="Chercher une commande, un client, un statut...">
+                    <select data-dynamic-filter><option value="">Tous les statuts</option><option>non payé</option><option>partiellement payé</option><option>payé</option></select>
+                    <select data-table-sort><option value="">Trier</option><option value="1:text">Client</option><option value="2:money">Total</option><option value="5:text">Statut</option></select>
+                </section>
+                <section class="panel">
+                    <div class="table-wrap">
+                        <table data-table>
+                            <thead><tr><th>Commande</th><th>Client</th><th>Total</th><th>Payé</th><th>Reste</th><th>Statut</th><th>Actions</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+    <script src="index.js"></script>
+</body>
+</html>

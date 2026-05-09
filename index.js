@@ -5,6 +5,9 @@ const pageNames = {
     clients: "Clients",
     produits: "Produits",
     fournisseurs: "Fournisseurs",
+    paiements: "Paiements",
+    factures: "Factures / Devis",
+    historique: "Historique",
     finances: "Finances",
     employes: "Employés",
     notifications: "Notifications",
@@ -17,6 +20,9 @@ const navItems = [
     { id: "commandes", label: "Commandes", href: "commandes.html", icon: "clipboard-list" },
     { id: "clients", label: "Clients", href: "clients.html", icon: "users" },
     { id: "produits", label: "Produits", href: "produits.html", icon: "package-check" },
+    { id: "paiements", label: "Paiements", href: "paiements.html", icon: "credit-card" },
+    { id: "factures", label: "Factures / Devis", href: "factures.html", icon: "file-text" },
+    { id: "historique", label: "Historique", href: "historique.html", icon: "history" },
     { id: "fournisseurs", label: "Fournisseurs", href: "fournisseurs.html", icon: "truck" },
     { id: "finances", label: "Finances", href: "finances.html", icon: "wallet-cards" },
     { id: "employes", label: "Employés", href: "employes.html", icon: "id-card" },
@@ -27,7 +33,7 @@ const navItems = [
 const currentPage = document.body.dataset.page || "";
 const currentFile = window.location.pathname.split("/").pop() || "index.html";
 const publicPages = ["login.html", "register.html", "forgot-password.html"];
-const protectedPages = ["index.html", "stocks.html", "commandes.html", "clients.html", "produits.html", "fournisseurs.html", "finances.html", "employes.html", "notifications.html", "parametres.html"];
+const protectedPages = ["index.html", "stocks.html", "commandes.html", "clients.html", "produits.html", "paiements.html", "factures.html", "historique.html", "fournisseurs.html", "finances.html", "employes.html", "notifications.html", "parametres.html"];
 const authStorageKey = "menuiseriepro-users";
 const sessionStorageKey = "menuiseriepro-session";
 const hashIterations = 150000;
@@ -45,6 +51,7 @@ const setSession = (user) => {
     localStorage.setItem(sessionStorageKey, JSON.stringify({
         name: user.name,
         email: user.email,
+        role: user.role || "administrateur",
         connectedAt: new Date().toISOString(),
     }));
 };
@@ -334,8 +341,10 @@ const initTables = () => {
 
 const statusClass = (status) => {
     const normalized = status.toLowerCase();
-    if (normalized.includes("livré") || normalized.includes("disponible") || normalized.includes("terminé") || normalized.includes("présent") || normalized.includes("validé")) return "done";
-    if (normalized.includes("cours")) return "progress";
+    if (normalized.includes("non payé")) return "danger";
+    if (normalized.includes("partiellement")) return "progress";
+    if (normalized.includes("payé") || normalized.includes("livré") || normalized.includes("disponible") || normalized.includes("terminé") || normalized.includes("présent") || normalized.includes("validé")) return "done";
+    if (normalized.includes("cours") || normalized.includes("fabrication") || normalized.includes("production")) return "progress";
     if (normalized.includes("manquant")) return "danger";
     return "pending";
 };
@@ -536,6 +545,7 @@ const handleRegister = async (form) => {
     const data = new FormData(form);
     const name = String(data.get("name") || "").trim();
     const email = normalizeEmail(String(data.get("email") || ""));
+    const role = String(data.get("role") || "administrateur");
     const password = String(data.get("password") || "");
     const confirmPassword = String(data.get("confirmPassword") || "");
 
@@ -563,7 +573,7 @@ const handleRegister = async (form) => {
     }
 
     const passwordData = await hashPassword(password);
-    const user = { name, email, ...passwordData, createdAt: new Date().toISOString() };
+    const user = { name, email, role, ...passwordData, createdAt: new Date().toISOString() };
     users.push(user);
     saveUsers(users);
     setSession(user);
@@ -644,6 +654,9 @@ const renderCurrentUser = () => {
     document.querySelectorAll("[data-user-email]").forEach((item) => {
         item.textContent = session.email;
     });
+    document.querySelectorAll("[data-user-role]").forEach((item) => {
+        item.textContent = session.role || "administrateur";
+    });
 };
 
 const initNavigationControls = () => {
@@ -722,6 +735,483 @@ const initSettingsActions = () => {
     });
 };
 
+const businessStorageKey = "menuiseriepro-business-v2";
+
+const orderStatuses = [
+    "Devis créé",
+    "Devis validé",
+    "Production lancée",
+    "En fabrication",
+    "Prêt à livrer",
+    "Livré",
+    "Payé",
+];
+
+const rolePermissions = {
+    administrateur: ["dashboard", "stocks", "commandes", "clients", "produits", "paiements", "factures", "historique", "fournisseurs", "finances", "employes", "notifications", "parametres"],
+    gerant: ["dashboard", "stocks", "commandes", "clients", "produits", "paiements", "factures", "historique", "fournisseurs", "finances", "employes", "notifications", "parametres"],
+    magasinier: ["dashboard", "stocks", "commandes", "produits", "fournisseurs", "notifications", "historique", "parametres"],
+    ouvrier: ["dashboard", "commandes", "produits", "notifications", "parametres"],
+};
+
+const money = (value) => `${Number(value || 0).toLocaleString("fr-FR")} FCFA`;
+const parseMoney = (value) => Number(String(value || "0").replace(/[^\d-]/g, "")) || 0;
+const todayIso = () => new Date().toISOString().slice(0, 10);
+const formatDate = (value) => value ? new Date(value).toLocaleDateString("fr-FR") : "-";
+const makeId = (prefix) => `${prefix}-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 5).toUpperCase()}`;
+const currentUserName = () => getSession()?.name || "Utilisateur";
+const currentUserRole = () => getSession()?.role || "administrateur";
+
+const businessDefaults = () => ({
+    stock: [
+        { id: "mat-bois", name: "Bois", unit: "m3", quantity: 42, threshold: 10, supplier: "Bois Ivoire", entries: 54, outputs: 12 },
+        { id: "mat-vis", name: "Vis", unit: "boîtes", quantity: 18, threshold: 6, supplier: "ColorBois", entries: 28, outputs: 10 },
+        { id: "mat-vernis", name: "Vernis", unit: "pots", quantity: 5, threshold: 6, supplier: "Atlas Matériaux", entries: 12, outputs: 7 },
+        { id: "mat-colle", name: "Colle", unit: "pots", quantity: 9, threshold: 4, supplier: "Atelier Plus", entries: 15, outputs: 6 },
+        { id: "mat-contreplaque", name: "Contreplaqué", unit: "m3", quantity: 7, threshold: 5, supplier: "Atlas Matériaux", entries: 16, outputs: 9 },
+    ],
+    products: [
+        { id: "prd-porte", name: "Porte intérieure", category: "Portes", price: 75000, quantity: 14, image: "assets/images/porte.png", materials: [{ stockId: "mat-bois", quantity: 1.2 }, { stockId: "mat-vis", quantity: 0.2 }, { stockId: "mat-vernis", quantity: 0.5 }, { stockId: "mat-colle", quantity: 0.3 }] },
+        { id: "prd-armoire", name: "Armoire 4 portes", category: "Armoires", price: 420000, quantity: 6, image: "assets/images/amoires.png", materials: [{ stockId: "mat-bois", quantity: 4 }, { stockId: "mat-vis", quantity: 0.8 }, { stockId: "mat-vernis", quantity: 1 }, { stockId: "mat-colle", quantity: 0.7 }] },
+        { id: "prd-cuisine", name: "Cuisine complète", category: "Cuisines", price: 1850000, quantity: 3, image: "assets/images/cuisines.png", materials: [{ stockId: "mat-bois", quantity: 8 }, { stockId: "mat-contreplaque", quantity: 3 }, { stockId: "mat-vis", quantity: 1.5 }, { stockId: "mat-vernis", quantity: 2 }, { stockId: "mat-colle", quantity: 1.5 }] },
+        { id: "prd-table", name: "Table repas", category: "Tables", price: 160000, quantity: 8, image: "assets/images/table.png", materials: [{ stockId: "mat-bois", quantity: 2 }, { stockId: "mat-vis", quantity: 0.4 }, { stockId: "mat-vernis", quantity: 0.6 }, { stockId: "mat-colle", quantity: 0.4 }] },
+    ],
+    clients: [
+        { id: "cli-aminata", name: "Aminata Koné", phone: "+225 07 45 22 18", email: "aminata@mail.com", address: "Cocody", type: "Particulier" },
+        { id: "cli-nova", name: "Studio Nova", phone: "+225 01 88 20 11", email: "contact@nova.ci", address: "Plateau", type: "Entreprise" },
+        { id: "cli-kouadio", name: "Kouadio Marc", phone: "+225 05 13 87 30", email: "marc@mail.com", address: "Marcory", type: "Particulier" },
+    ],
+    orders: [
+        { id: "MP-238", clientId: "cli-kouadio", productId: "prd-cuisine", quantity: 1, total: 1850000, deposit: 1850000, status: "Payé", paymentStatus: "payé", dueDate: "2026-05-08", deliveryDate: "2026-05-08", createdAt: "2026-05-07T09:30:00.000Z", stockReserved: true },
+        { id: "MP-239", clientId: "cli-aminata", productId: "prd-armoire", quantity: 1, total: 420000, deposit: 150000, status: "En fabrication", paymentStatus: "partiellement payé", dueDate: "2026-05-12", deliveryDate: "2026-05-12", createdAt: "2026-05-08T08:00:00.000Z", stockReserved: true },
+        { id: "MP-240", clientId: "cli-nova", productId: "prd-porte", quantity: 2, total: 150000, deposit: 0, status: "Devis créé", paymentStatus: "non payé", dueDate: "2026-05-15", deliveryDate: "2026-05-15", createdAt: "2026-05-08T11:10:00.000Z", stockReserved: false },
+    ],
+    payments: [
+        { id: "pay-1", orderId: "MP-238", amount: 1850000, date: "2026-05-08", method: "Virement", note: "Solde cuisine complète" },
+        { id: "pay-2", orderId: "MP-239", amount: 150000, date: "2026-05-08", method: "Espèces", note: "Acompte armoire" },
+    ],
+    expenses: [{ id: "exp-1", date: "2026-05-08", type: "Dépense", description: "Achat chêne", amount: 980000, status: "Comptabilisé" }],
+    documents: [
+        { id: "doc-1", orderId: "MP-240", type: "Devis", number: "DEV-240", date: "2026-05-08", total: 150000 },
+        { id: "doc-2", orderId: "MP-238", type: "Facture", number: "FAC-238", date: "2026-05-08", total: 1850000 },
+    ],
+    history: [
+        { id: "his-1", user: "Admin MenuiseriePro", action: "Commande créée", target: "MP-240", date: "2026-05-08T11:10:00.000Z" },
+        { id: "his-2", user: "Awa", action: "Stock mis à jour", target: "Bois", date: "2026-05-08T10:25:00.000Z" },
+    ],
+    notifications: [],
+});
+
+const loadBusiness = () => {
+    try {
+        const saved = JSON.parse(localStorage.getItem(businessStorageKey));
+        return saved && Array.isArray(saved.orders) ? { ...businessDefaults(), ...saved } : businessDefaults();
+    } catch {
+        return businessDefaults();
+    }
+};
+const saveBusiness = (data) => localStorage.setItem(businessStorageKey, JSON.stringify(data));
+const getClient = (data, id) => data.clients.find((item) => item.id === id) || { name: "Client inconnu" };
+const getProduct = (data, id) => data.products.find((item) => item.id === id) || { name: "Produit inconnu", materials: [], price: 0 };
+const paidForOrder = (data, orderId) => data.payments.filter((item) => item.orderId === orderId).reduce((sum, item) => sum + Number(item.amount || 0), 0);
+const stockStatus = (item) => Number(item.quantity) <= 0 ? "Manquant" : Number(item.quantity) <= Number(item.threshold || 0) ? "Stock faible" : "Disponible";
+const paymentStatusFor = (total, paid) => paid <= 0 ? "non payé" : paid >= total ? "payé" : "partiellement payé";
+const logAction = (data, action, target) => data.history.unshift({ id: makeId("his"), user: currentUserName(), action, target, date: new Date().toISOString() });
+
+const addNotification = (data, title, message, level = "info", target = "") => {
+    if (!data.notifications.some((item) => item.title === title && item.message === message && !item.read)) {
+        data.notifications.unshift({ id: makeId("not"), title, message, level, target, read: false, date: new Date().toISOString() });
+    }
+};
+
+const refreshDerivedData = (data) => {
+    data.orders.forEach((order) => {
+        const paid = paidForOrder(data, order.id);
+        order.deposit = paid;
+        order.paymentStatus = paymentStatusFor(order.total, paid);
+        if (order.paymentStatus === "payé" && order.status !== "Payé") order.status = "Payé";
+    });
+    data.stock.forEach((item) => {
+        if (stockStatus(item) === "Stock faible") addNotification(data, "Stock faible", `${item.name} est sous le seuil minimum.`, "warning", item.name);
+        if (stockStatus(item) === "Manquant") addNotification(data, "Stock manquant", `${item.name} est épuisé.`, "danger", item.name);
+    });
+    data.orders.forEach((order) => {
+        const client = getClient(data, order.clientId);
+        if (!["Livré", "Payé"].includes(order.status) && new Date(order.dueDate) < new Date(todayIso())) {
+            addNotification(data, "Commande en retard", `${order.id} pour ${client.name} devait être livrée le ${formatDate(order.dueDate)}.`, "danger", order.id);
+        }
+        const daysBeforeDelivery = Math.ceil((new Date(order.deliveryDate) - new Date(todayIso())) / 86400000);
+        if (!["Livré", "Payé"].includes(order.status) && daysBeforeDelivery >= 0 && daysBeforeDelivery <= 3) {
+            addNotification(data, "Livraison prévue", `${order.id} pour ${client.name} est prévue le ${formatDate(order.deliveryDate)}.`, "info", order.id);
+        }
+        if (order.paymentStatus !== "payé" && order.deposit > 0) {
+            addNotification(data, "Paiement à compléter", `${client.name} doit encore ${money(order.total - order.deposit)} sur ${order.id}.`, "warning", order.id);
+        }
+    });
+};
+
+const reserveMaterials = (data, productId, quantity, orderId) => {
+    const product = getProduct(data, productId);
+    const missing = product.materials.map((need) => {
+        const stock = data.stock.find((item) => item.id === need.stockId);
+        const required = Number(need.quantity) * Number(quantity);
+        return stock && Number(stock.quantity) >= required ? null : `${stock?.name || "Matière"} : besoin ${required}, disponible ${stock?.quantity || 0}`;
+    }).filter(Boolean);
+    if (missing.length) return { ok: false, message: `Stock insuffisant. ${missing.join(" | ")}` };
+    product.materials.forEach((need) => {
+        const stock = data.stock.find((item) => item.id === need.stockId);
+        const required = Number(need.quantity) * Number(quantity);
+        stock.quantity = Number((Number(stock.quantity) - required).toFixed(2));
+        stock.outputs = Number((Number(stock.outputs || 0) + required).toFixed(2));
+        logAction(data, "Stock consommé", `${stock.name} pour ${orderId}`);
+    });
+    return { ok: true };
+};
+
+const canSeePage = () => (rolePermissions[currentUserRole()] || rolePermissions.administrateur).includes(currentPage);
+const applyRoleSecurity = () => {
+    const allowed = rolePermissions[currentUserRole()] || rolePermissions.administrateur;
+    document.querySelectorAll(".nav-link").forEach((link) => {
+        const item = navItems.find((nav) => link.getAttribute("href") === nav.href);
+        if (item && !allowed.includes(item.id)) link.remove();
+    });
+    if (currentPage && !canSeePage()) {
+        document.querySelector(".page-content")?.replaceChildren(Object.assign(document.createElement("section"), {
+            className: "panel empty-state",
+            innerHTML: "<h1>Accès limité</h1><p>Votre rôle ne permet pas d'ouvrir cette page.</p>",
+        }));
+    }
+};
+
+const statusBadge = (status) => `<span class="status ${statusClass(status)}">${status}</span>`;
+const materialLabel = (data, material) => {
+    const stock = data.stock.find((item) => item.id === material.stockId);
+    return `${stock?.name || "Matière"} (${material.quantity} ${stock?.unit || ""})`;
+};
+const setLoading = (form, loading) => {
+    form?.classList.toggle("is-loading", loading);
+    form?.querySelectorAll("button, input, select, textarea").forEach((field) => field.disabled = loading);
+};
+
+const addDynamicFilters = (fields = []) => {
+    const toolbar = document.querySelector(".toolbar");
+    if (!toolbar || toolbar.dataset.enhanced) return;
+    toolbar.dataset.enhanced = "true";
+    fields.forEach((field) => toolbar.insertAdjacentHTML("beforeend", field));
+};
+
+const applyDynamicTableFilters = () => {
+    const table = document.querySelector("[data-table]");
+    if (!table) return;
+    const search = document.querySelector("[data-table-search]");
+    const filters = Array.from(document.querySelectorAll("[data-dynamic-filter]"));
+    const dateFilter = document.querySelector("[data-date-filter]");
+    const sort = document.querySelector("[data-table-sort]");
+    const rows = Array.from(table.querySelectorAll("tbody tr")).filter((row) => !row.classList.contains("detail-row"));
+    rows.forEach((row) => {
+        const text = row.textContent.toLowerCase();
+        const dateValue = dateFilter?.value ? formatDate(dateFilter.value) : "";
+        row.hidden = !((!search?.value || text.includes(search.value.trim().toLowerCase())) && filters.every((filter) => !filter.value || text.includes(filter.value.toLowerCase())) && (!dateValue || text.includes(dateValue)));
+    });
+    if (sort?.value) {
+        const [index, type] = sort.value.split(":");
+        const tbody = table.querySelector("tbody");
+        rows.sort((a, b) => {
+            const av = a.cells[Number(index)]?.textContent.trim() || "";
+            const bv = b.cells[Number(index)]?.textContent.trim() || "";
+            if (type === "money") return parseMoney(av) - parseMoney(bv);
+            if (type === "date") return new Date(av.split("/").reverse().join("-")) - new Date(bv.split("/").reverse().join("-"));
+            return av.localeCompare(bv, "fr");
+        }).forEach((row) => tbody.appendChild(row));
+    }
+};
+const bindDynamicFilters = () => document.querySelectorAll("[data-table-search], [data-dynamic-filter], [data-date-filter], [data-table-sort]").forEach((field) => {
+    field.addEventListener("input", applyDynamicTableFilters);
+    field.addEventListener("change", applyDynamicTableFilters);
+});
+
+const renderDashboard = (data) => {
+    if (currentPage !== "dashboard") return;
+    const revenue = data.payments.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    const expenses = data.expenses.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    const delivered = data.orders.filter((item) => ["Livré", "Payé"].includes(item.status)).length;
+    const active = data.orders.filter((item) => !["Livré", "Payé"].includes(item.status)).length;
+    const lowStock = data.stock.filter((item) => stockStatus(item) !== "Disponible").length;
+    document.querySelector(".stat-grid")?.replaceChildren();
+    const stats = document.querySelector(".stat-grid");
+    if (stats) stats.innerHTML = `<article class="stat-card"><span>Chiffre d'affaires</span><strong>${money(revenue)}</strong><small class="positive">Paiements encaissés</small></article><article class="stat-card"><span>Bénéfice estimé</span><strong>${money(revenue - expenses)}</strong><small class="${revenue >= expenses ? "positive" : "warning"}">Après dépenses</small></article><article class="stat-card"><span>Dépenses</span><strong>${money(expenses)}</strong><small class="warning">Achats et charges</small></article><article class="stat-card"><span>Commandes en cours</span><strong>${active}</strong><small>${delivered} livrées/payées</small></article><article class="stat-card"><span>Stock restant</span><strong>${data.stock.reduce((sum, item) => sum + Number(item.quantity || 0), 0).toFixed(1)}</strong><small>${lowStock} alertes stock</small></article><article class="stat-card"><span>Factures / devis</span><strong>${data.documents.length}</strong><small>Documents générés</small></article>`;
+    const stockList = document.querySelector(".stock-list");
+    if (stockList) stockList.innerHTML = data.stock.slice(0, 5).map((item) => `<div class="${stockStatus(item) === "Disponible" ? "" : "low"}"><span>${item.name}</span><b>${item.quantity} ${item.unit}</b></div>`).join("");
+    const activity = document.querySelector(".activity-list");
+    if (activity) activity.innerHTML = data.history.slice(0, 5).map((item) => `<li><span></span>${item.action} : ${item.target}</li>`).join("");
+    const stack = document.querySelector(".notification-stack");
+    if (stack) stack.innerHTML = data.notifications.slice(0, 4).map((item) => `<div class="notice ${item.level === "danger" ? "urgent" : ""}">${item.title} : ${item.message}</div>`).join("");
+    const tbody = document.querySelector(".panel-large table tbody");
+    if (tbody) tbody.innerHTML = data.orders.slice(0, 5).map((order) => `<tr><td>${getClient(data, order.clientId).name}</td><td>${getProduct(data, order.productId).name}</td><td>${money(order.total)}</td><td>${formatDate(order.deliveryDate)}</td><td>${statusBadge(order.status)}</td></tr>`).join("");
+};
+
+const renderStocks = (data) => {
+    if (currentPage !== "stocks") return;
+    addDynamicFilters([`<select data-table-sort><option value="">Trier</option><option value="0:text">Matériau</option><option value="1:money">Quantité</option><option value="5:text">Statut</option></select>`]);
+    const tbody = document.querySelector("[data-table] tbody");
+    if (tbody) tbody.innerHTML = data.stock.map((item) => `<tr><td>${item.name}</td><td>${item.quantity} ${item.unit}</td><td>${item.supplier}</td><td>${item.entries} ${item.unit}</td><td>${item.outputs} ${item.unit}</td><td>${statusBadge(stockStatus(item))}</td><td><button class="mini-btn" data-stock-adjust="${item.id}">Entrée</button></td></tr>`).join("");
+};
+
+const renderProducts = (data) => {
+    if (currentPage !== "produits") return;
+    addDynamicFilters([`<select data-dynamic-filter><option value="">Toutes les catégories</option>${[...new Set(data.products.map((item) => item.category))].map((item) => `<option>${item}</option>`).join("")}</select>`, `<select data-table-sort><option value="">Trier</option><option value="0:text">Nom</option><option value="2:money">Prix</option><option value="3:money">Quantité</option></select>`]);
+    const tbody = document.querySelector("[data-table] tbody");
+    if (tbody) tbody.innerHTML = data.products.map((item) => `<tr><td>${item.name}</td><td>${item.category}</td><td>${money(item.price)}</td><td>${item.quantity}</td><td><img class="product-thumb" src="${item.image}" alt="${item.name}"></td><td><button class="mini-btn">Modifier</button></td></tr><tr class="detail-row"><td colspan="6"><strong>Matières premières :</strong> ${item.materials.map((mat) => materialLabel(data, mat)).join(", ")}</td></tr>`).join("");
+};
+
+const renderClients = (data) => {
+    if (currentPage !== "clients") return;
+    addDynamicFilters([`<select data-table-sort><option value="">Trier</option><option value="0:text">Client</option><option value="4:money">Commandes</option></select>`]);
+    const tbody = document.querySelector("[data-table] tbody");
+    if (tbody) tbody.innerHTML = data.clients.map((client) => {
+        const count = data.orders.filter((order) => order.clientId === client.id).length;
+        return `<tr><td>${client.name}</td><td>${client.phone}</td><td>${client.email}</td><td>${client.address}</td><td>${count} commande${count > 1 ? "s" : ""}</td><td>${client.type}</td><td><button class="mini-btn">Voir</button></td></tr>`;
+    }).join("");
+};
+
+const renderOrders = (data) => {
+    if (currentPage !== "commandes") return;
+    const tabs = document.querySelector(".status-tabs");
+    if (tabs) tabs.innerHTML = `<button class="active" data-status-filter="">Toutes</button>${orderStatuses.map((item) => `<button data-status-filter="${item}">${item}</button>`).join("")}`;
+    addDynamicFilters([`<select data-dynamic-filter><option value="">Tous les clients</option>${data.clients.map((item) => `<option>${item.name}</option>`).join("")}</select>`, `<input type="date" data-date-filter aria-label="Filtrer par date">`, `<select data-table-sort><option value="">Trier</option><option value="0:text">Client</option><option value="2:money">Prix</option><option value="3:date">Date</option><option value="4:text">Statut</option></select>`]);
+    const head = document.querySelector("[data-table] thead tr");
+    if (head) head.innerHTML = "<th>Client</th><th>Produit</th><th>Prix</th><th>Livraison</th><th>Statut</th><th>Paiement</th><th>Actions</th>";
+    const tbody = document.querySelector("[data-table] tbody");
+    if (tbody) tbody.innerHTML = data.orders.map((order) => {
+        const paid = paidForOrder(data, order.id);
+        const next = orderStatuses[orderStatuses.indexOf(order.status) + 1];
+        return `<tr><td>${getClient(data, order.clientId).name}</td><td>${getProduct(data, order.productId).name} x${order.quantity}</td><td>${money(order.total)}</td><td>${formatDate(order.deliveryDate)}</td><td>${statusBadge(order.status)}</td><td>${money(paid)} / ${money(order.total)}<br>${order.paymentStatus}</td><td><button class="mini-btn" data-next-status="${order.id}" ${!next ? "disabled" : ""}>${next || "Terminé"}</button><button class="mini-btn" data-doc="${order.id}">Document</button></td></tr>`;
+    }).join("");
+};
+
+const renderPayments = (data) => {
+    if (currentPage !== "paiements") return;
+    const tbody = document.querySelector("[data-table] tbody");
+    if (tbody) tbody.innerHTML = data.orders.map((order) => {
+        const paid = paidForOrder(data, order.id);
+        return `<tr><td>${order.id}</td><td>${getClient(data, order.clientId).name}</td><td>${money(order.total)}</td><td>${money(paid)}</td><td>${money(order.total - paid)}</td><td>${statusBadge(order.paymentStatus)}</td><td><button class="mini-btn" data-add-payment="${order.id}">Ajouter</button></td></tr>`;
+    }).join("");
+};
+
+const renderDocuments = (data) => {
+    if (currentPage !== "factures") return;
+    const tbody = document.querySelector("[data-table] tbody");
+    if (tbody) tbody.innerHTML = data.documents.map((doc) => {
+        const order = data.orders.find((item) => item.id === doc.orderId);
+        return `<tr><td>${doc.number}</td><td>${doc.type}</td><td>${order?.id || "-"}</td><td>${getClient(data, order?.clientId).name}</td><td>${formatDate(doc.date)}</td><td>${money(doc.total)}</td><td><button class="mini-btn" data-print-doc="${doc.id}">Imprimer</button></td></tr>`;
+    }).join("");
+};
+
+const renderHistory = (data) => {
+    if (currentPage !== "historique") return;
+    const tbody = document.querySelector("[data-table] tbody");
+    if (tbody) tbody.innerHTML = data.history.map((item) => `<tr><td>${item.user}</td><td>${item.action}</td><td>${formatDate(item.date)}</td><td>${item.target}</td></tr>`).join("");
+};
+
+const renderNotificationsBusiness = (data) => {
+    if (currentPage !== "notifications") return;
+    const list = document.querySelector(".notification-page-list");
+    if (list) list.innerHTML = data.notifications.map((item) => `<article class="notification-item ${item.read ? "" : "unread"}"><span class="alert-dot ${item.level === "danger" ? "danger" : ""}"></span><div><h3>${item.title}</h3><p>${item.message}</p></div><small>${formatDate(item.date)}</small></article>`).join("") || `<article class="notification-item"><span class="alert-dot"></span><div><h3>Aucune notification</h3><p>Tout est à jour.</p></div><small>Aujourd'hui</small></article>`;
+};
+
+const renderFinances = (data) => {
+    if (currentPage !== "finances") return;
+    const revenue = data.payments.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    const expenses = data.expenses.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    const cards = document.querySelector(".stat-grid");
+    if (cards) cards.innerHTML = `<article class="stat-card"><span>Chiffre d'affaires</span><strong>${money(revenue)}</strong><small class="positive">Encaissé</small></article><article class="stat-card"><span>Dépenses</span><strong>${money(expenses)}</strong><small class="warning">Sorties</small></article><article class="stat-card"><span>Bénéfice</span><strong>${money(revenue - expenses)}</strong><small class="positive">Estimé</small></article><article class="stat-card"><span>Transactions</span><strong>${data.payments.length + data.expenses.length}</strong><small>Totales</small></article>`;
+    const tbody = document.querySelector("[data-table] tbody");
+    if (tbody) {
+        const rows = [...data.payments.map((pay) => ({ date: pay.date, type: "Recette", description: `${pay.note} (${pay.orderId})`, amount: pay.amount, status: "Validé" })), ...data.expenses.map((exp) => ({ date: exp.date, type: "Dépense", description: exp.description, amount: exp.amount, status: exp.status }))].sort((a, b) => new Date(b.date) - new Date(a.date));
+        tbody.innerHTML = rows.map((row) => `<tr><td>${formatDate(row.date)}</td><td>${row.type}</td><td>${row.description}</td><td>${money(row.amount)}</td><td>${statusBadge(row.status)}</td></tr>`).join("");
+    }
+};
+
+const renderBusiness = (data) => {
+    refreshDerivedData(data);
+    saveBusiness(data);
+    renderDashboard(data);
+    renderStocks(data);
+    renderProducts(data);
+    renderClients(data);
+    renderOrders(data);
+    renderPayments(data);
+    renderDocuments(data);
+    renderHistory(data);
+    renderNotificationsBusiness(data);
+    renderFinances(data);
+    bindDynamicFilters();
+    refreshIcons();
+};
+
+const enhanceForms = (data) => {
+    const orderForm = document.querySelector('[data-add-row="order"]');
+    if (orderForm) {
+        orderForm.innerHTML = `<div class="panel-header"><h2>Nouvelle commande</h2><button class="icon-btn" value="cancel" type="submit" aria-label="Fermer"><i data-lucide="x"></i></button></div><label>Client<select name="clientId" required>${data.clients.map((item) => `<option value="${item.id}">${item.name}</option>`).join("")}</select></label><label>Produit<select name="productId" required>${data.products.map((item) => `<option value="${item.id}">${item.name} - ${money(item.price)}</option>`).join("")}</select></label><label>Quantité<input name="quantity" type="number" min="1" value="1" required></label><label>Acompte payé<input name="deposit" inputmode="numeric" placeholder="Ex : 100000"></label><label>Livraison prévue<input name="deliveryDate" type="date" value="${todayIso()}" required></label><div class="modal-actions"><button class="btn btn-secondary" value="cancel" type="submit">Annuler</button><button class="btn btn-primary" type="submit">Enregistrer</button></div>`;
+    }
+    const productForm = document.querySelector('[data-add-row="product"]');
+    if (productForm && !productForm.querySelector("[name='materials']")) productForm.querySelector("label:nth-of-type(4)")?.insertAdjacentHTML("afterend", `<label>Matières premières<input name="materials" required placeholder="Bois:1.2, Vis:0.2, Vernis:0.5"></label>`);
+    refreshIcons();
+};
+
+const bindBusinessActions = (data) => {
+    document.addEventListener("submit", (event) => {
+        const form = event.target;
+        if (!form.dataset.addRow && form.dataset.simpleToast === undefined) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        if (event.submitter?.value === "cancel") {
+            form.reset();
+            form.closest("dialog")?.close();
+            showToast("Action annulée");
+            return;
+        }
+        setLoading(form, true);
+        window.setTimeout(() => {
+            const formData = new FormData(form);
+            try {
+                if (form.dataset.addRow === "order") {
+                    const product = getProduct(data, formData.get("productId"));
+                    const quantity = Number(formData.get("quantity") || 1);
+                    const order = { id: `MP-${241 + data.orders.length}`, clientId: formData.get("clientId"), productId: product.id, quantity, total: product.price * quantity, deposit: 0, status: "Devis créé", paymentStatus: "non payé", dueDate: formData.get("deliveryDate"), deliveryDate: formData.get("deliveryDate"), createdAt: new Date().toISOString(), stockReserved: false };
+                    const reserved = reserveMaterials(data, order.productId, order.quantity, order.id);
+                    if (!reserved.ok) throw new Error(reserved.message);
+                    order.stockReserved = true;
+                    data.orders.unshift(order);
+                    const deposit = parseMoney(formData.get("deposit"));
+                    if (deposit > 0) data.payments.unshift({ id: makeId("pay"), orderId: order.id, amount: Math.min(deposit, order.total), date: todayIso(), method: "Espèces", note: "Acompte" });
+                    logAction(data, "Commande créée", order.id);
+                    addNotification(data, "Nouvelle commande", `${order.id} créée pour ${getClient(data, order.clientId).name}.`, "info", order.id);
+                }
+                if (form.dataset.addRow === "stock") {
+                    const quantityText = String(formData.get("quantite") || "");
+                    const quantity = parseFloat(quantityText.replace(",", ".")) || 0;
+                    const unit = quantityText.replace(/[0-9.,\s]/g, "") || "unité";
+                    data.stock.unshift({ id: makeId("mat"), name: formData.get("materiau"), unit, quantity, threshold: Math.max(1, quantity * 0.2), supplier: formData.get("fournisseur"), entries: quantity, outputs: 0 });
+                    logAction(data, "Stock ajouté", formData.get("materiau"));
+                }
+                if (form.dataset.addRow === "product") {
+                    const materials = String(formData.get("materials") || "").split(",").map((part) => {
+                        const [name, qty] = part.split(":").map((item) => item.trim());
+                        let stock = data.stock.find((item) => item.name.toLowerCase() === name.toLowerCase());
+                        if (!stock && name) {
+                            stock = { id: makeId("mat"), name, unit: "unité", quantity: 0, threshold: 1, supplier: "À renseigner", entries: 0, outputs: 0 };
+                            data.stock.push(stock);
+                        }
+                        return stock ? { stockId: stock.id, quantity: Number(String(qty).replace(",", ".")) || 1 } : null;
+                    }).filter(Boolean);
+                    data.products.unshift({ id: makeId("prd"), name: formData.get("nom"), category: formData.get("categorie"), price: parseMoney(formData.get("prix")), quantity: Number(formData.get("quantite") || 0), image: productImageForCategory(formData.get("categorie")), materials });
+                    logAction(data, "Produit créé", formData.get("nom"));
+                }
+                if (currentPage === "clients" && form.dataset.simpleToast !== undefined) {
+                    const values = Array.from(form.querySelectorAll("input")).map((field) => field.value.trim());
+                    data.clients.unshift({ id: makeId("cli"), name: values[0], phone: values[1], email: values[2], address: values[3], type: "Particulier" });
+                    logAction(data, "Client créé", values[0]);
+                }
+                if (currentPage === "finances" && form.dataset.simpleToast !== undefined) {
+                    const values = Array.from(form.querySelectorAll("select, input")).map((field) => field.value.trim());
+                    data.expenses.unshift({ id: makeId("exp"), date: todayIso(), type: values[0], description: values[1], amount: parseMoney(values[2]), status: "Comptabilisé" });
+                    logAction(data, "Transaction ajoutée", values[1]);
+                }
+                form.closest("dialog")?.close();
+                form.reset();
+                renderBusiness(data);
+                showToast("Informations enregistrées");
+            } catch (error) {
+                showToast(error.message || "Action impossible");
+            } finally {
+                setLoading(form, false);
+            }
+        }, 250);
+    }, true);
+
+    document.addEventListener("click", (event) => {
+        const nextButton = event.target.closest("[data-next-status]");
+        const docButton = event.target.closest("[data-doc]");
+        const payButton = event.target.closest("[data-add-payment]");
+        const printButton = event.target.closest("[data-print-doc]");
+        const stockButton = event.target.closest("[data-stock-adjust]");
+        const statusFilterButton = event.target.closest("[data-status-filter]");
+        if (statusFilterButton) {
+            document.querySelectorAll("[data-status-filter]").forEach((item) => item.classList.remove("active"));
+            statusFilterButton.classList.add("active");
+            const value = statusFilterButton.dataset.statusFilter.toLowerCase();
+            document.querySelectorAll("[data-table] tbody tr").forEach((row) => {
+                row.hidden = value ? !row.textContent.toLowerCase().includes(value) : false;
+            });
+        }
+        if (nextButton) {
+            const order = data.orders.find((item) => item.id === nextButton.dataset.nextStatus);
+            const next = orderStatuses[orderStatuses.indexOf(order.status) + 1];
+            if (next === "Payé" && order.paymentStatus !== "payé") return showToast("Le solde doit être payé avant de passer la commande en Payé.");
+            order.status = next;
+            logAction(data, "Statut modifié", `${order.id} -> ${next}`);
+            renderBusiness(data);
+            showToast(`Commande ${order.id} : ${next}`);
+        }
+        if (docButton) {
+            const order = data.orders.find((item) => item.id === docButton.dataset.doc);
+            const type = order.status === "Devis créé" ? "Devis" : "Facture";
+            const doc = { id: makeId("doc"), orderId: order.id, type, number: `${type === "Devis" ? "DEV" : "FAC"}-${order.id.replace("MP-", "")}`, date: todayIso(), total: order.total };
+            data.documents.unshift(doc);
+            logAction(data, `${type} généré`, doc.number);
+            renderBusiness(data);
+            showToast(`${type} généré`);
+        }
+        if (payButton) {
+            const order = data.orders.find((item) => item.id === payButton.dataset.addPayment);
+            const paid = paidForOrder(data, order.id);
+            const amount = parseMoney(prompt(`Montant à encaisser pour ${order.id}. Reste : ${money(order.total - paid)}`, String(order.total - paid)));
+            if (amount <= 0) return;
+            data.payments.unshift({ id: makeId("pay"), orderId: order.id, amount: Math.min(amount, order.total - paid), date: todayIso(), method: "Espèces", note: "Paiement client" });
+            logAction(data, "Paiement ajouté", order.id);
+            renderBusiness(data);
+            showToast("Paiement enregistré");
+        }
+        if (printButton) {
+            const doc = data.documents.find((item) => item.id === printButton.dataset.printDoc);
+            const order = data.orders.find((item) => item.id === doc.orderId);
+            const win = window.open("", "_blank");
+            win.document.write(`<title>${doc.number}</title><body style="font-family:Arial;padding:32px"><h1>${doc.type} ${doc.number}</h1><p>Client : ${getClient(data, order.clientId).name}</p><p>Commande : ${order.id}</p><p>Produit : ${getProduct(data, order.productId).name} x${order.quantity}</p><h2>Total : ${money(doc.total)}</h2><script>print()<\/script></body>`);
+            win.document.close();
+            logAction(data, `${doc.type} imprimé`, doc.number);
+            saveBusiness(data);
+        }
+        if (stockButton) {
+            const stock = data.stock.find((item) => item.id === stockButton.dataset.stockAdjust);
+            const qty = Number(prompt(`Entrée de stock pour ${stock.name} (${stock.unit})`, "1") || 0);
+            if (qty <= 0) return;
+            stock.quantity = Number((Number(stock.quantity) + qty).toFixed(2));
+            stock.entries = Number((Number(stock.entries || 0) + qty).toFixed(2));
+            logAction(data, "Stock modifié", stock.name);
+            renderBusiness(data);
+            showToast("Stock mis à jour");
+        }
+    });
+
+    document.querySelector("[data-mark-read]")?.addEventListener("click", () => {
+        data.notifications.forEach((item) => item.read = true);
+        logAction(data, "Notifications lues", "Centre de notifications");
+        renderBusiness(data);
+    });
+};
+
+const initBusinessApp = () => {
+    if (isPublicPage) return;
+    applyRoleSecurity();
+    if (!canSeePage()) return;
+    const data = loadBusiness();
+    refreshDerivedData(data);
+    enhanceForms(data);
+    renderBusiness(data);
+    bindBusinessActions(data);
+};
+
 if (requireAuth()) {
     renderSidebar();
     renderTopbar();
@@ -737,4 +1227,5 @@ if (requireAuth()) {
     initNavigationControls();
     initPageButtons();
     initSettingsActions();
+    initBusinessApp();
 }

@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MenuiseriePro | Factures et devis</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="factures">
+    <div class="app-shell">
+        <aside class="sidebar" data-sidebar></aside>
+        <div class="app-main">
+            <header class="topbar" data-topbar></header>
+            <main class="page-content">
+                <section class="page-title">
+                    <div>
+                        <p class="eyebrow">Documents</p>
+                        <h1>Factures / Devis</h1>
+                        <p>Les devis et factures sont générés depuis les commandes.</p>
+                        <small class="page-update">Mis à jour automatiquement</small>
+                    </div>
+                </section>
+                <section class="toolbar">
+                    <input type="search" data-table-search placeholder="Chercher un devis, une facture, un client...">
+                    <select data-dynamic-filter><option value="">Tous les documents</option><option>Devis</option><option>Facture</option></select>
+                    <input type="date" data-date-filter aria-label="Filtrer par date">
+                    <select data-table-sort><option value="">Trier</option><option value="0:text">Numéro</option><option value="4:date">Date</option><option value="5:money">Total</option></select>
+                </section>
+                <section class="panel">
+                    <div class="table-wrap">
+                        <table data-table>
+                            <thead><tr><th>Numéro</th><th>Type</th><th>Commande</th><th>Client</th><th>Date</th><th>Total</th><th>Actions</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+    <script src="index.js"></script>
+</body>
+</html>

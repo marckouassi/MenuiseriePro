@@ -1259,6 +1259,32 @@ img.section-icon {
     animation: toastIn 0.25s ease;
 }
 
+.detail-row td {
+    background: var(--surface-soft);
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.empty-state {
+    max-width: 720px;
+}
+
+.is-loading {
+    opacity: 0.72;
+    pointer-events: none;
+}
+
+button:disabled,
+.mini-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+}
+
+[hidden] {
+    display: none !important;
+}
+
 @keyframes toastIn {
     from {
         opacity: 0;

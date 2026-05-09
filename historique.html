@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MenuiseriePro | Historique</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body data-page="historique">
+    <div class="app-shell">
+        <aside class="sidebar" data-sidebar></aside>
+        <div class="app-main">
+            <header class="topbar" data-topbar></header>
+            <main class="page-content">
+                <section class="page-title">
+                    <div>
+                        <p class="eyebrow">Journal</p>
+                        <h1>Historique</h1>
+                        <p>Toutes les actions importantes de l'atelier sont enregistrées ici.</p>
+                        <small class="page-update">Mis à jour automatiquement</small>
+                    </div>
+                </section>
+                <section class="toolbar">
+                    <input type="search" data-table-search placeholder="Chercher un utilisateur, une action, une commande...">
+                    <select data-table-sort><option value="">Trier</option><option value="2:date">Date</option><option value="1:text">Action</option><option value="0:text">Utilisateur</option></select>
+                </section>
+                <section class="panel">
+                    <div class="table-wrap">
+                        <table data-table>
+                            <thead><tr><th>Utilisateur</th><th>Action effectuée</th><th>Date</th><th>Élément concerné</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+    <script src="index.js"></script>
+</body>
+</html>
