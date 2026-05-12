@@ -9,9 +9,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="data.js"></script>
 </head>
 <body data-page="dashboard">
-    <!-- Layout principal: la sidebar et la topbar sont injectees par index.js -->
     <div class="app-shell">
         <aside class="sidebar" data-sidebar></aside>
         <button class="sidebar-overlay" type="button" data-sidebar-overlay aria-label="Fermer le menu"></button>
@@ -20,13 +21,12 @@
             <header class="topbar" data-topbar></header>
 
             <main class="page-content">
-                <!-- Resume rapide de l'activite de l'atelier -->
                 <section class="page-hero">
                     <div>
                         <p class="eyebrow">Vue globale</p>
                         <h1>Tableau de bord MenuiseriePro</h1>
                         <p>Tout ce qui compte pour l'atelier : ventes, commandes, stock et alertes.</p>
-                        <small class="page-update">Mis à jour : 08/05/2026</small>
+                        <small class="page-update">Mis à jour : <span id="date-maj"></span></small>
                     </div>
                     <div class="hero-panel">
                         <span>Entreprise</span>
@@ -35,21 +35,20 @@
                     </div>
                 </section>
 
-                <!-- Cartes de statistiques principales -->
                 <section class="stat-grid">
                     <article class="stat-card">
                         <span>Chiffre d'affaires</span>
-                        <strong>14 850 000 FCFA</strong>
+                        <strong><span id="kpi-ca"></span></strong>
                         <small class="positive">+12.4% ce mois</small>
                     </article>
                     <article class="stat-card">
                         <span>Bénéfice</span>
-                        <strong>5 420 000 FCFA</strong>
+                        <strong><span id="kpi-benefice"></span></strong>
                         <small class="positive">+8.7% ce mois</small>
                     </article>
                     <article class="stat-card">
                         <span>Sorties d'argent</span>
-                        <strong>3 180 000 FCFA</strong>
+                        <strong><span id="kpi-sorties"></span></strong>
                         <small class="warning">Bois +4%</small>
                     </article>
                     <article class="stat-card">
@@ -64,12 +63,11 @@
                     </article>
                     <article class="stat-card">
                         <span>Projets en cours</span>
-                        <strong>26</strong>
+                        <strong><span id="kpi-projets"></span></strong>
                         <small>12 livraisons à faire</small>
                     </article>
                 </section>
 
-                <!-- Graphiques, stocks, alertes et dernieres commandes -->
                 <section class="dashboard-grid">
                     <article class="panel panel-large">
                         <div class="panel-header">
@@ -80,13 +78,7 @@
                             <button class="icon-btn" type="button" title="Actualiser" aria-label="Actualiser"><i data-lucide="refresh-cw"></i></button>
                         </div>
                         <div class="bar-chart chart-panel" aria-label="Graphique ventes">
-                            <span style="height: 48%"><b>Jan</b></span>
-                            <span style="height: 62%"><b>Fev</b></span>
-                            <span style="height: 55%"><b>Mar</b></span>
-                            <span style="height: 74%"><b>Avr</b></span>
-                            <span style="height: 82%"><b>Mai</b></span>
-                            <span style="height: 68%"><b>Juin</b></span>
-                            <span style="height: 91%"><b>Juil</b></span>
+                            <canvas id="chartVentes" height="120"></canvas>
                         </div>
                     </article>
 
@@ -142,8 +134,7 @@
                             </div>
                         </div>
                         <div class="calendar-mini">
-                            <span>Lun</span><span>Mar</span><span>Mer</span><span>Jeu</span><span>Ven</span><span>Sam</span><span>Dim</span>
-                            <button>4</button><button class="active">5</button><button>6</button><button>7</button><button>8</button><button>9</button><button>10</button>
+                            <div id="calendrier-grid"></div>
                         </div>
                     </article>
 
@@ -197,9 +188,64 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="data.js"></script>
     <script src="index.js"></script>
-    <script src="dashboard.js"></script>
+    <script>
+// Date
+document.getElementById('date-maj').textContent = new Date().toLocaleDateString('fr-FR');
+
+// KPIs
+document.getElementById('kpi-ca').textContent = AppData.kpis.ca.toLocaleString('fr-FR') + ' FCFA';
+document.getElementById('kpi-benefice').textContent = AppData.kpis.benefice.toLocaleString('fr-FR') + ' FCFA';
+document.getElementById('kpi-sorties').textContent = AppData.kpis.sorties.toLocaleString('fr-FR') + ' FCFA';
+document.getElementById('kpi-projets').textContent = AppData.kpis.projets;
+
+// Graphique
+const ctx = document.getElementById('chartVentes').getContext('2d');
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: AppData.mois,
+    datasets: [{
+      label: 'Ventes (FCFA)',
+      data: AppData.ventes,
+      backgroundColor: '#b87333',
+      borderRadius: 6
+    }]
+  },
+  options: { responsive: true, plugins: { legend: { display: false } } }
+});
+
+// Calendrier
+const today = new Date();
+const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).getDay();
+const daysInMonth = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
+const grid = document.getElementById('calendrier-grid');
+grid.style.display = 'grid';
+grid.style.gridTemplateColumns = 'repeat(7, 1fr)';
+grid.style.gap = '4px';
+['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].forEach(j => {
+  const h = document.createElement('div');
+  h.textContent = j;
+  h.style.fontWeight = 'bold';
+  h.style.textAlign = 'center';
+  h.style.fontSize = '12px';
+  grid.appendChild(h);
+});
+const offset = (firstDay === 0 ? 6 : firstDay - 1);
+for(let i=0; i<offset; i++) grid.appendChild(document.createElement('div'));
+for(let d=1; d<=daysInMonth; d++) {
+  const cell = document.createElement('div');
+  cell.textContent = d;
+  cell.style.textAlign = 'center';
+  cell.style.padding = '4px';
+  cell.style.borderRadius = '4px';
+  if(d === today.getDate()) {
+    cell.style.background = '#b87333';
+    cell.style.color = '#fff';
+    cell.style.fontWeight = 'bold';
+  }
+  grid.appendChild(cell);
+}
+</script>
 </body>
 </html>
