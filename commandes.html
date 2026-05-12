@@ -10,6 +10,7 @@
     <!-- Layout principal: la sidebar et la topbar sont injectées par index.js -->
     <div class="app-shell">
         <aside class="sidebar" data-sidebar></aside>
+        <button class="sidebar-overlay" type="button" data-sidebar-overlay aria-label="Fermer le menu"></button>
         <div class="app-main">
             <header class="topbar" data-topbar></header>
             <main class="page-content">
@@ -21,7 +22,7 @@
                         <p>Notez les commandes, voyez l'état et mettez à jour rapidement.</p>
                         <small class="page-update">Mis à jour : 08/05/2026</small>
                     </div>
-                    <button class="btn btn-primary" data-open-modal="orderModal">Nouvelle commande</button>
+                    <button class="btn btn-primary" type="button" data-open-modal="orderModal">Nouvelle commande</button>
                 </section>
 
                 <!-- Filtres par statut de commande -->
@@ -80,6 +81,8 @@
         </form>
     </dialog>
 
+    <script src="data.js"></script>
     <script src="index.js"></script>
+    <script src="commandes.js"></script>
 </body>
 </html>

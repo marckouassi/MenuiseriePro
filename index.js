@@ -197,7 +197,7 @@ const renderTopbar = () => {
     const profileLabel = session ? `Profil de ${session.name}` : "Profil utilisateur";
 
     topbar.innerHTML = `
-        <button class="icon-btn mobile-menu" type="button" data-mobile-menu aria-label="Ouvrir le menu"><i data-lucide="menu"></i></button>
+        <button class="icon-btn mobile-menu" type="button" data-mobile-menu aria-label="Ouvrir le menu" aria-expanded="false"><i data-lucide="menu"></i></button>
         <div class="topbar-title">
             <strong>${pageNames[currentPage] || "MenuiseriePro"}</strong>
             <span>${new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "2-digit", month: "long", year: "numeric" })}</span>
@@ -218,14 +218,31 @@ const renderTopbar = () => {
 
 // Ouvre et ferme le menu sur mobile.
 const initMobileMenu = () => {
-    document.querySelectorAll("[data-mobile-menu]").forEach((button) => {
-        button.addEventListener("click", () => {
-            document.body.classList.toggle("sidebar-open");
+    const setMenuOpen = (open) => {
+        document.body.classList.toggle("sidebar-open", open);
+        document.querySelectorAll("[data-mobile-menu]").forEach((button) => {
+            button.setAttribute("aria-expanded", String(open));
+            button.setAttribute("aria-label", open ? "Fermer le menu" : "Ouvrir le menu");
         });
+    };
+
+    document.addEventListener("click", (event) => {
+        if (event.target.closest("[data-mobile-menu]")) {
+            setMenuOpen(!document.body.classList.contains("sidebar-open"));
+            return;
+        }
+
+        if (event.target.closest("[data-sidebar-overlay]")) {
+            setMenuOpen(false);
+        }
+    });
+
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") setMenuOpen(false);
     });
 
     document.querySelectorAll(".nav-link").forEach((link) => {
-        link.addEventListener("click", () => document.body.classList.remove("sidebar-open"));
+        link.addEventListener("click", () => setMenuOpen(false));
     });
 };
 
@@ -1202,7 +1219,7 @@ const bindBusinessActions = (data) => {
 };
 
 const initBusinessApp = () => {
-    if (isPublicPage) return;
+    if (isPublicPage || ["dashboard", "commandes"].includes(currentPage)) return;
     applyRoleSecurity();
     if (!canSeePage()) return;
     const data = loadBusiness();

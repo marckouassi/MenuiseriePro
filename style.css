@@ -49,6 +49,33 @@ body {
     letter-spacing: 0;
 }
 
+body::after {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    display: grid;
+    place-items: center;
+    background: var(--surface);
+    content: "";
+    pointer-events: none;
+    animation: pageLoaderOut 1s ease forwards;
+}
+
+body::before {
+    position: fixed;
+    top: calc(50% - 20px);
+    left: calc(50% - 20px);
+    z-index: 1000;
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--beige);
+    border-top-color: var(--wood);
+    border-radius: 50%;
+    content: "";
+    pointer-events: none;
+    animation: loaderSpin 0.8s linear infinite, pageLoaderOut 1s ease forwards;
+}
+
 a {
     color: inherit;
     text-decoration: none;
@@ -77,9 +104,14 @@ button {
     top: 0;
     height: 100vh;
     padding: 20px;
+    overflow-y: auto;
     border-right: 1px solid var(--line);
     background: rgba(255, 253, 248, 0.82);
     backdrop-filter: blur(18px);
+}
+
+.sidebar-overlay {
+    display: none;
 }
 
 body.dark .sidebar {
@@ -544,6 +576,16 @@ small,
     padding-top: 20px;
 }
 
+.chart-panel {
+    display: block;
+    position: relative;
+}
+
+.chart-panel canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+
 .bar-chart span {
     position: relative;
     display: block;
@@ -620,6 +662,29 @@ small,
 
 .stock-list .low,
 .notice.urgent {
+    color: var(--red);
+}
+
+.stock-progress {
+    display: block;
+    width: min(180px, 100%);
+    height: 8px;
+    margin-top: 8px;
+    overflow: hidden;
+    border-radius: 999px;
+    background: var(--surface-soft);
+}
+
+.stock-progress span {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--amber), var(--green));
+    transition: width 0.8s ease;
+}
+
+.stock-alert-row td {
     color: var(--red);
 }
 
@@ -779,13 +844,18 @@ td {
 }
 
 .status.progress {
-    background: rgba(167, 102, 63, 0.14);
-    color: var(--wood);
+    background: rgba(49, 93, 134, 0.14);
+    color: #315d86;
 }
 
 .status.pending {
     background: rgba(201, 134, 52, 0.16);
     color: var(--amber);
+}
+
+.status.finished {
+    background: rgba(117, 111, 103, 0.14);
+    color: var(--muted);
 }
 
 .status.danger {
@@ -1285,6 +1355,24 @@ button:disabled,
     display: none !important;
 }
 
+th[data-sortable="true"] {
+    cursor: pointer;
+    user-select: none;
+}
+
+th[data-sortable="true"]::after {
+    color: var(--wood);
+    content: " ↕";
+}
+
+th[aria-sort="ascending"]::after {
+    content: " ↑";
+}
+
+th[aria-sort="descending"]::after {
+    content: " ↓";
+}
+
 @keyframes toastIn {
     from {
         opacity: 0;
@@ -1293,6 +1381,24 @@ button:disabled,
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+@keyframes loaderSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes pageLoaderOut {
+    0%,
+    78% {
+        opacity: 1;
+        visibility: visible;
+    }
+    100% {
+        opacity: 0;
+        visibility: hidden;
     }
 }
 
@@ -1386,13 +1492,38 @@ body.dark .auth-card {
 
     .sidebar {
         position: fixed;
-        z-index: 30;
+        left: 0;
+        z-index: 60;
+        width: min(86vw, var(--sidebar-width));
+        max-width: 320px;
         transform: translateX(-100%);
         transition: transform 0.25s ease;
+        box-shadow: var(--shadow);
     }
 
     body.sidebar-open .sidebar {
         transform: translateX(0);
+    }
+
+    .sidebar-footer {
+        position: static;
+        margin-top: 20px;
+    }
+
+    .sidebar-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 50;
+        display: block;
+        background: rgba(17, 16, 14, 0.38);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s ease;
+    }
+
+    body.sidebar-open .sidebar-overlay {
+        opacity: 1;
+        pointer-events: auto;
     }
 
     .topbar .mobile-menu {

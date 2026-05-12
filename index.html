@@ -14,6 +14,7 @@
     <!-- Layout principal: la sidebar et la topbar sont injectees par index.js -->
     <div class="app-shell">
         <aside class="sidebar" data-sidebar></aside>
+        <button class="sidebar-overlay" type="button" data-sidebar-overlay aria-label="Fermer le menu"></button>
 
         <div class="app-main">
             <header class="topbar" data-topbar></header>
@@ -78,7 +79,7 @@
                             </div>
                             <button class="icon-btn" type="button" title="Actualiser" aria-label="Actualiser"><i data-lucide="refresh-cw"></i></button>
                         </div>
-                        <div class="bar-chart" aria-label="Graphique ventes">
+                        <div class="bar-chart chart-panel" aria-label="Graphique ventes">
                             <span style="height: 48%"><b>Jan</b></span>
                             <span style="height: 62%"><b>Fev</b></span>
                             <span style="height: 55%"><b>Mar</b></span>
@@ -155,7 +156,7 @@
                             <a class="text-link" href="commandes.html">Tout voir</a>
                         </div>
                         <div class="table-wrap">
-                            <table>
+                            <table class="dashboard-orders">
                                 <thead>
                                     <tr>
                                         <th>Client</th>
@@ -196,6 +197,9 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="data.js"></script>
     <script src="index.js"></script>
+    <script src="dashboard.js"></script>
 </body>
 </html>
