@@ -358,8 +358,9 @@ const initTables = () => {
 
 const statusClass = (status) => {
     const normalized = status.toLowerCase();
-    if (normalized.includes("non payé")) return "danger";
+    if (normalized.includes("non payé") || normalized.includes("absent")) return "danger";
     if (normalized.includes("partiellement")) return "progress";
+    if (normalized.includes("congé")) return "pending";
     if (normalized.includes("payé") || normalized.includes("livré") || normalized.includes("disponible") || normalized.includes("terminé") || normalized.includes("présent") || normalized.includes("validé")) return "done";
     if (normalized.includes("cours") || normalized.includes("fabrication") || normalized.includes("production")) return "progress";
     if (normalized.includes("manquant")) return "danger";
@@ -807,7 +808,21 @@ const businessDefaults = () => ({
         { id: "pay-1", orderId: "MP-238", amount: 1850000, date: "2026-05-08", method: "Virement", note: "Solde cuisine complète" },
         { id: "pay-2", orderId: "MP-239", amount: 150000, date: "2026-05-08", method: "Espèces", note: "Acompte armoire" },
     ],
-    expenses: [{ id: "exp-1", date: "2026-05-08", type: "Dépense", description: "Achat chêne", amount: 980000, status: "Comptabilisé" }],
+    suppliers: [
+        { id: "sup-bois-ivoire", name: "Bois Ivoire", materials: "Chêne massif, teck, iroko", contact: "+225 07 20 48 10", address: "Yopougon zone industrielle", email: "contact@boisivoire.ci", purchases: 24, lastPurchase: "2026-05-08", total: 980000, notes: "Fournisseur principal pour les bois nobles et les plateaux massifs." },
+        { id: "sup-atlas", name: "Atlas Matériaux", materials: "Contreplaqué, MDF, colle", contact: "+225 01 11 42 60", address: "Koumassi", email: "achats@atlas-materiaux.ci", purchases: 18, lastPurchase: "2026-05-06", total: 340000, notes: "Approvisionnement régulier en panneaux et consommables." },
+        { id: "sup-colorbois", name: "ColorBois", materials: "Vernis mat, teintes, finitions", contact: "+225 05 70 30 42", address: "Marcory", email: "vente@colorbois.ci", purchases: 31, lastPurchase: "2026-05-04", total: 210000, notes: "Spécialiste finitions, vernis et produits de protection." },
+    ],
+    employees: [
+        { id: "emp-awa", name: "Awa Diarra", role: "Chef d'atelier", salary: 420000, currentStatus: "Présent", tasks: "Contrôle qualité", phone: "+225 07 14 32 90", hiredAt: "2024-01-15", leaveUntil: "", attendance: [{ date: "2026-05-08", status: "Présent", note: "Contrôle qualité" }, { date: "2026-05-07", status: "Présent", note: "Validation cuisine" }, { date: "2026-05-06", status: "Absent", note: "Rendez-vous personnel" }, { date: "2026-05-05", status: "Présent", note: "Supervision atelier" }] },
+        { id: "emp-yao", name: "Yao Serge", role: "Menuisier", salary: 280000, currentStatus: "Présent", tasks: "Cuisine Kouadio", phone: "+225 05 44 19 80", hiredAt: "2023-09-04", leaveUntil: "", attendance: [{ date: "2026-05-08", status: "Présent", note: "Cuisine Kouadio" }, { date: "2026-05-07", status: "Présent", note: "Découpe panneaux" }, { date: "2026-05-06", status: "Présent", note: "Assemblage" }, { date: "2026-05-05", status: "Congé", note: "Congé validé" }] },
+        { id: "emp-nadia", name: "Nadia B.", role: "Commerciale", salary: 310000, currentStatus: "Absent", tasks: "Relances devis", phone: "+225 01 72 66 12", hiredAt: "2024-06-10", leaveUntil: "2026-05-10", attendance: [{ date: "2026-05-08", status: "Absent", note: "Absence signalée" }, { date: "2026-05-07", status: "Congé", note: "Congé administratif" }, { date: "2026-05-06", status: "Présent", note: "Relances devis" }, { date: "2026-05-05", status: "Présent", note: "Prospection" }] },
+    ],
+    expenses: [
+        { id: "exp-1", date: "2026-05-08", type: "Dépense", description: "Achat chêne", amount: 980000, status: "Comptabilisé", supplierId: "sup-bois-ivoire", materials: "Chêne massif" },
+        { id: "exp-2", date: "2026-05-06", type: "Dépense", description: "MDF et colle", amount: 340000, status: "Comptabilisé", supplierId: "sup-atlas", materials: "MDF, colle" },
+        { id: "exp-3", date: "2026-05-04", type: "Dépense", description: "Vernis mat", amount: 210000, status: "Comptabilisé", supplierId: "sup-colorbois", materials: "Vernis mat" },
+    ],
     documents: [
         { id: "doc-1", orderId: "MP-240", type: "Devis", number: "DEV-240", date: "2026-05-08", total: 150000 },
         { id: "doc-2", orderId: "MP-238", type: "Facture", number: "FAC-238", date: "2026-05-08", total: 1850000 },
@@ -830,6 +845,9 @@ const loadBusiness = () => {
 const saveBusiness = (data) => localStorage.setItem(businessStorageKey, JSON.stringify(data));
 const getClient = (data, id) => data.clients.find((item) => item.id === id) || { name: "Client inconnu" };
 const getProduct = (data, id) => data.products.find((item) => item.id === id) || { name: "Produit inconnu", materials: [], price: 0 };
+const getSupplier = (data, id) => data.suppliers?.find((item) => item.id === id) || { name: "Fournisseur inconnu", materials: "-", contact: "-" };
+const getEmployee = (data, id) => data.employees?.find((item) => item.id === id) || { name: "Employé inconnu", role: "-", attendance: [] };
+const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#039;" }[char]));
 const paidForOrder = (data, orderId) => data.payments.filter((item) => item.orderId === orderId).reduce((sum, item) => sum + Number(item.amount || 0), 0);
 const stockStatus = (item) => Number(item.quantity) <= 0 ? "Manquant" : Number(item.quantity) <= Number(item.threshold || 0) ? "Stock faible" : "Disponible";
 const paymentStatusFor = (total, paid) => paid <= 0 ? "non payé" : paid >= total ? "payé" : "partiellement payé";
@@ -947,6 +965,71 @@ const bindDynamicFilters = () => document.querySelectorAll("[data-table-search],
     field.addEventListener("change", applyDynamicTableFilters);
 });
 
+
+const ensureDetailModal = () => {
+    let modal = document.getElementById("detailModal");
+    if (modal) return modal;
+    modal = document.createElement("dialog");
+    modal.id = "detailModal";
+    modal.className = "modal detail-modal";
+    modal.innerHTML = `<div class="modal-card detail-card"><div class="panel-header"><h2 data-detail-title>Détails</h2><button class="icon-btn" type="button" data-close-detail aria-label="Fermer"><i data-lucide="x"></i></button></div><div data-detail-content></div></div>`;
+    document.body.appendChild(modal);
+    modal.querySelector("[data-close-detail]").addEventListener("click", () => modal.close());
+    refreshIcons();
+    return modal;
+};
+
+const openDetailModal = (title, content) => {
+    const modal = ensureDetailModal();
+    modal.querySelector("[data-detail-title]").textContent = title;
+    modal.querySelector("[data-detail-content]").innerHTML = content;
+    modal.showModal();
+};
+
+const clientDetailHtml = (data, client) => {
+    const orders = data.orders.filter((order) => order.clientId === client.id);
+    const payments = orders.flatMap((order) => data.payments.filter((pay) => pay.orderId === order.id).map((pay) => ({ ...pay, order })));
+    const total = orders.reduce((sum, order) => sum + Number(order.total || 0), 0);
+    const paid = payments.reduce((sum, pay) => sum + Number(pay.amount || 0), 0);
+    return `<div class="detail-summary-grid"><article><span>Client</span><strong>${escapeHtml(client.name)}</strong><small>${escapeHtml(client.type)}</small></article><article><span>Total commandes</span><strong>${money(total)}</strong><small>${orders.length} commande${orders.length > 1 ? "s" : ""}</small></article><article><span>Payé</span><strong>${money(paid)}</strong><small>Reste ${money(total - paid)}</small></article></div><div class="detail-info-grid"><p><b>Téléphone :</b> ${escapeHtml(client.phone)}</p><p><b>Email :</b> ${escapeHtml(client.email)}</p><p><b>Adresse :</b> ${escapeHtml(client.address)}</p></div><h3>Commandes du client</h3><div class="table-wrap"><table class="detail-table"><thead><tr><th>Commande</th><th>Produit</th><th>Livraison</th><th>Total</th><th>Statut</th></tr></thead><tbody>${orders.map((order) => `<tr><td>${escapeHtml(order.id)}</td><td>${escapeHtml(getProduct(data, order.productId).name)} x${order.quantity}</td><td>${formatDate(order.deliveryDate)}</td><td>${money(order.total)}</td><td>${statusBadge(order.status)}</td></tr>`).join("") || `<tr><td colspan="5">Aucune commande enregistrée.</td></tr>`}</tbody></table></div><h3>Paiements liés</h3><div class="detail-list">${payments.map((pay) => `<div><span>${formatDate(pay.date)} · ${escapeHtml(pay.method)}</span><strong>${money(pay.amount)}</strong><small>${escapeHtml(pay.note)} (${escapeHtml(pay.order.id)})</small></div>`).join("") || `<p>Aucun paiement enregistré pour ce client.</p>`}</div>`;
+};
+
+const supplierDetailHtml = (data, supplier) => {
+    const purchases = data.expenses.filter((expense) => expense.supplierId === supplier.id || expense.description?.toLowerCase().includes(String(supplier.materials).split(",")[0].trim().toLowerCase()));
+    const total = purchases.reduce((sum, purchase) => sum + Number(purchase.amount || 0), 0) || Number(supplier.total || 0);
+    return `<div class="detail-summary-grid"><article><span>Fournisseur</span><strong>${escapeHtml(supplier.name)}</strong><small>${escapeHtml(supplier.contact)}</small></article><article><span>Achats</span><strong>${supplier.purchases || purchases.length}</strong><small>Dernier achat : ${formatDate(supplier.lastPurchase)}</small></article><article><span>Total fourni</span><strong>${money(total)}</strong><small>${escapeHtml(supplier.materials)}</small></article></div><div class="detail-info-grid"><p><b>Contact :</b> ${escapeHtml(supplier.contact)}</p><p><b>Email :</b> ${escapeHtml(supplier.email || "-")}</p><p><b>Adresse :</b> ${escapeHtml(supplier.address || "-")}</p><p><b>Note :</b> ${escapeHtml(supplier.notes || "-")}</p></div><h3>Ce qu'il a fourni</h3><div class="table-wrap"><table class="detail-table"><thead><tr><th>Date</th><th>Matériaux</th><th>Description</th><th>Montant</th><th>Statut</th></tr></thead><tbody>${purchases.map((purchase) => `<tr><td>${formatDate(purchase.date)}</td><td>${escapeHtml(purchase.materials || supplier.materials)}</td><td>${escapeHtml(purchase.description)}</td><td>${money(purchase.amount)}</td><td>${statusBadge(purchase.status)}</td></tr>`).join("") || `<tr><td>${formatDate(supplier.lastPurchase)}</td><td>${escapeHtml(supplier.materials)}</td><td>Approvisionnement fournisseur</td><td>${money(supplier.total)}</td><td>${statusBadge("Comptabilisé")}</td></tr>`}</tbody></table></div>`;
+};
+
+
+const employeeDetailHtml = (employee) => {
+    const attendance = Array.isArray(employee.attendance) ? employee.attendance : [];
+    const presentCount = attendance.filter((item) => item.status === "Présent").length;
+    const absentCount = attendance.filter((item) => item.status === "Absent").length;
+    const leaveCount = attendance.filter((item) => item.status === "Congé").length;
+    const leaveText = employee.currentStatus === "Congé" || employee.leaveUntil
+        ? `Oui${employee.leaveUntil ? `, jusqu'au ${formatDate(employee.leaveUntil)}` : ""}`
+        : "Non";
+    return `<div class="detail-summary-grid"><article><span>Employé</span><strong>${escapeHtml(employee.name)}</strong><small>${escapeHtml(employee.role)}</small></article><article><span>Statut actuel</span><strong>${statusBadge(employee.currentStatus || "Présent")}</strong><small>En congé : ${escapeHtml(leaveText)}</small></article><article><span>Salaire</span><strong>${money(employee.salary)}</strong><small>Depuis le ${formatDate(employee.hiredAt)}</small></article></div><div class="detail-info-grid"><p><b>Téléphone :</b> ${escapeHtml(employee.phone || "-")}</p><p><b>Tâches assignées :</b> ${escapeHtml(employee.tasks || "-")}</p><p><b>Présences :</b> ${presentCount}</p><p><b>Absences :</b> ${absentCount} · <b>Congés :</b> ${leaveCount}</p></div><h3>Liste de présence, absence et congé</h3><div class="table-wrap"><table class="detail-table"><thead><tr><th>Date</th><th>Statut</th><th>Observation / tâche</th></tr></thead><tbody>${attendance.map((item) => `<tr><td>${formatDate(item.date)}</td><td>${statusBadge(item.status)}</td><td>${escapeHtml(item.note || "-")}</td></tr>`).join("") || `<tr><td colspan="3">Aucun historique de présence enregistré.</td></tr>`}</tbody></table></div>`;
+};
+
+const paymentDocumentHtml = (data, order) => {
+    const client = getClient(data, order.clientId);
+    const product = getProduct(data, order.productId);
+    const payments = data.payments.filter((pay) => pay.orderId === order.id);
+    const paid = paidForOrder(data, order.id);
+    return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>Détails paiement ${escapeHtml(order.id)}</title><style>body{margin:0;background:#e7e2d8;font-family:Arial,sans-serif;color:#1d1a16}.toolbar{position:sticky;top:0;padding:14px 24px;background:#27211b;color:#fff;display:flex;gap:10px;justify-content:flex-end}.toolbar button{border:0;border-radius:6px;padding:10px 14px;font-weight:700;cursor:pointer}.page{width:210mm;min-height:297mm;margin:24px auto;padding:24mm;background:#fff;box-shadow:0 12px 35px rgba(0,0,0,.18)}.head{display:flex;justify-content:space-between;border-bottom:3px solid #a7663f;padding-bottom:18px}.brand{font-size:28px;font-weight:800;color:#5a3523}.meta{text-align:right;color:#666}.stamp{display:inline-block;margin-top:8px;padding:7px 12px;border:2px solid #486b57;color:#486b57;border-radius:999px;font-weight:800;text-transform:uppercase}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:24px 0}.box{border:1px solid #ded6c8;border-radius:10px;padding:14px}.box span{display:block;color:#756f67;font-size:12px;text-transform:uppercase;font-weight:800}.box strong{display:block;margin-top:6px;font-size:18px}table{width:100%;border-collapse:collapse;margin-top:14px}th,td{border-bottom:1px solid #ded6c8;padding:12px;text-align:left}th{background:#fbf7ef;color:#756f67;text-transform:uppercase;font-size:12px}.total{margin-left:auto;width:45%;margin-top:20px}.total div{display:flex;justify-content:space-between;padding:10px;border-bottom:1px solid #ded6c8}.total .rest{font-size:20px;font-weight:800;color:#b64a3d}.foot{margin-top:42px;display:grid;grid-template-columns:1fr 1fr;gap:38px}.sign{border-top:1px solid #1d1a16;padding-top:10px;text-align:center;color:#756f67}@media print{body{background:#fff}.toolbar{display:none}.page{margin:0;box-shadow:none;width:auto;min-height:auto}}</style></head><body><div class="toolbar"><button onclick="downloadWord()">Télécharger Word</button><button onclick="print()">Imprimer</button></div><main class="page" id="wordPage"><section class="head"><div><div class="brand">MenuiseriePro</div><p>Atelier d'Abidjan · Gestion des paiements clients</p></div><div class="meta"><b>FICHE PAIEMENT</b><br>Commande ${escapeHtml(order.id)}<br>${formatDate(todayIso())}<br><span class="stamp">${escapeHtml(order.paymentStatus)}</span></div></section><section class="grid"><div class="box"><span>Client</span><strong>${escapeHtml(client.name)}</strong><p>${escapeHtml(client.phone)}<br>${escapeHtml(client.email)}<br>${escapeHtml(client.address)}</p></div><div class="box"><span>Commande</span><strong>${escapeHtml(product.name)} x${order.quantity}</strong><p>Livraison : ${formatDate(order.deliveryDate)}<br>Statut : ${escapeHtml(order.status)}</p></div><div class="box"><span>Total commande</span><strong>${money(order.total)}</strong></div><div class="box"><span>Montant encaissé</span><strong>${money(paid)}</strong></div></section><h2>Historique des paiements</h2><table><thead><tr><th>Date</th><th>Méthode</th><th>Note</th><th>Montant</th></tr></thead><tbody>${payments.map((pay) => `<tr><td>${formatDate(pay.date)}</td><td>${escapeHtml(pay.method)}</td><td>${escapeHtml(pay.note)}</td><td>${money(pay.amount)}</td></tr>`).join("") || `<tr><td colspan="4">Aucun paiement encaissé.</td></tr>`}</tbody></table><section class="total"><div><span>Total</span><b>${money(order.total)}</b></div><div><span>Payé</span><b>${money(paid)}</b></div><div class="rest"><span>Reste</span><b>${money(order.total - paid)}</b></div></section><section class="foot"><div class="sign">Signature client</div><div class="sign">Signature MenuiseriePro</div></section></main><script>function downloadWord(){const html='<!DOCTYPE html>'+document.documentElement.outerHTML;const blob=new Blob(['\\ufeff',html],{type:'application/msword'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='detail-paiement-${escapeHtml(order.id)}.doc';a.click();URL.revokeObjectURL(a.href)}<\/script></body></html>`;
+};
+
+const openPaymentDocument = (data, order) => {
+    const win = window.open("", "_blank");
+    if (!win) {
+        showToast("Autorisez les pop-ups pour ouvrir la page Word du paiement.");
+        return;
+    }
+    win.document.write(paymentDocumentHtml(data, order));
+    win.document.close();
+};
+
 const renderDashboard = (data) => {
     if (currentPage !== "dashboard") return;
     const revenue = data.payments.reduce((sum, item) => sum + Number(item.amount || 0), 0);
@@ -987,7 +1070,7 @@ const renderClients = (data) => {
     const tbody = document.querySelector("[data-table] tbody");
     if (tbody) tbody.innerHTML = data.clients.map((client) => {
         const count = data.orders.filter((order) => order.clientId === client.id).length;
-        return `<tr><td>${client.name}</td><td>${client.phone}</td><td>${client.email}</td><td>${client.address}</td><td>${count} commande${count > 1 ? "s" : ""}</td><td>${client.type}</td><td><button class="mini-btn">Voir</button></td></tr>`;
+        return `<tr><td>${client.name}</td><td>${client.phone}</td><td>${client.email}</td><td>${client.address}</td><td>${count} commande${count > 1 ? "s" : ""}</td><td>${client.type}</td><td><button class="mini-btn" data-view-client="${client.id}">Voir</button></td></tr>`;
     }).join("");
 };
 
@@ -1006,12 +1089,30 @@ const renderOrders = (data) => {
     }).join("");
 };
 
+
+
+const renderEmployees = (data) => {
+    if (currentPage !== "employes") return;
+    if (!Array.isArray(data.employees)) data.employees = businessDefaults().employees;
+    const tbody = document.querySelector("[data-table] tbody");
+    if (tbody) tbody.innerHTML = data.employees.map((employee) => `<tr><td>${escapeHtml(employee.name)}</td><td>${escapeHtml(employee.role)}</td><td>${money(employee.salary)}</td><td>${statusBadge(employee.currentStatus || "Présent")}</td><td>${escapeHtml(employee.tasks || "-")}</td><td><button class="mini-btn" data-view-employee="${employee.id}">Voir détails</button></td></tr>`).join("");
+};
+
+const renderSuppliers = (data) => {
+    if (currentPage !== "fournisseurs") return;
+    if (!Array.isArray(data.suppliers)) data.suppliers = businessDefaults().suppliers;
+    const grid = document.querySelector(".supplier-grid");
+    if (grid) grid.innerHTML = data.suppliers.map((supplier) => `<article class="panel supplier-card"><h2>${escapeHtml(supplier.name)}</h2><p>${escapeHtml(supplier.materials)}</p><strong>${supplier.purchases || 0} achats</strong><span>${escapeHtml(supplier.contact)}</span><button class="mini-btn" data-view-supplier="${supplier.id}">Voir détails</button></article>`).join("");
+    const tbody = document.querySelector("[data-table] tbody");
+    if (tbody) tbody.innerHTML = data.suppliers.map((supplier) => `<tr><td>${escapeHtml(supplier.name)}</td><td>${escapeHtml(supplier.materials)}</td><td>${escapeHtml(supplier.contact)}</td><td>${formatDate(supplier.lastPurchase)}</td><td>${money(supplier.total)}</td><td><button class="mini-btn" data-view-supplier="${supplier.id}">Voir</button></td></tr>`).join("");
+};
+
 const renderPayments = (data) => {
     if (currentPage !== "paiements") return;
     const tbody = document.querySelector("[data-table] tbody");
     if (tbody) tbody.innerHTML = data.orders.map((order) => {
         const paid = paidForOrder(data, order.id);
-        return `<tr><td>${order.id}</td><td>${getClient(data, order.clientId).name}</td><td>${money(order.total)}</td><td>${money(paid)}</td><td>${money(order.total - paid)}</td><td>${statusBadge(order.paymentStatus)}</td><td><button class="mini-btn" data-add-payment="${order.id}">Ajouter</button></td></tr>`;
+        return `<tr><td>${order.id}</td><td>${getClient(data, order.clientId).name}</td><td>${money(order.total)}</td><td>${money(paid)}</td><td>${money(order.total - paid)}</td><td>${statusBadge(order.paymentStatus)}</td><td><button class="mini-btn" data-view-payment="${order.id}">Voir détails</button></td></tr>`;
     }).join("");
 };
 
@@ -1056,6 +1157,8 @@ const renderBusiness = (data) => {
     renderStocks(data);
     renderProducts(data);
     renderClients(data);
+    renderEmployees(data);
+    renderSuppliers(data);
     renderOrders(data);
     renderPayments(data);
     renderDocuments(data);
@@ -1130,6 +1233,18 @@ const bindBusinessActions = (data) => {
                     data.clients.unshift({ id: makeId("cli"), name: values[0], phone: values[1], email: values[2], address: values[3], type: "Particulier" });
                     logAction(data, "Client créé", values[0]);
                 }
+                if (currentPage === "employes" && form.dataset.simpleToast !== undefined) {
+                    const values = Array.from(form.querySelectorAll("input, textarea")).map((field) => field.value.trim());
+                    if (!Array.isArray(data.employees)) data.employees = [];
+                    data.employees.unshift({ id: makeId("emp"), name: values[0], role: values[1], salary: parseMoney(values[2]), currentStatus: "Présent", tasks: values[3] || "À assigner", phone: "À renseigner", hiredAt: todayIso(), leaveUntil: "", attendance: [{ date: todayIso(), status: "Présent", note: values[3] || "Premier jour enregistré" }] });
+                    logAction(data, "Employé créé", values[0]);
+                }
+                if (currentPage === "fournisseurs" && form.dataset.simpleToast !== undefined) {
+                    const values = Array.from(form.querySelectorAll("input")).map((field) => field.value.trim());
+                    if (!Array.isArray(data.suppliers)) data.suppliers = [];
+                    data.suppliers.unshift({ id: makeId("sup"), name: values[0], materials: values[1], contact: values[2], address: "À renseigner", email: "-", purchases: 0, lastPurchase: todayIso(), total: 0, notes: "Nouveau fournisseur ajouté." });
+                    logAction(data, "Fournisseur créé", values[0]);
+                }
                 if (currentPage === "finances" && form.dataset.simpleToast !== undefined) {
                     const values = Array.from(form.querySelectorAll("select, input")).map((field) => field.value.trim());
                     data.expenses.unshift({ id: makeId("exp"), date: todayIso(), type: values[0], description: values[1], amount: parseMoney(values[2]), status: "Comptabilisé" });
@@ -1154,6 +1269,30 @@ const bindBusinessActions = (data) => {
         const printButton = event.target.closest("[data-print-doc]");
         const stockButton = event.target.closest("[data-stock-adjust]");
         const statusFilterButton = event.target.closest("[data-status-filter]");
+        const clientDetailButton = event.target.closest("[data-view-client]");
+        const supplierDetailButton = event.target.closest("[data-view-supplier]");
+        const employeeDetailButton = event.target.closest("[data-view-employee]");
+        const paymentDetailButton = event.target.closest("[data-view-payment]");
+        if (clientDetailButton) {
+            const client = getClient(data, clientDetailButton.dataset.viewClient);
+            openDetailModal(`Détails du client - ${client.name}`, clientDetailHtml(data, client));
+            return;
+        }
+        if (supplierDetailButton) {
+            const supplier = getSupplier(data, supplierDetailButton.dataset.viewSupplier);
+            openDetailModal(`Détails du fournisseur - ${supplier.name}`, supplierDetailHtml(data, supplier));
+            return;
+        }
+        if (employeeDetailButton) {
+            const employee = getEmployee(data, employeeDetailButton.dataset.viewEmployee);
+            openDetailModal(`Détails de l'employé - ${employee.name}`, employeeDetailHtml(employee));
+            return;
+        }
+        if (paymentDetailButton) {
+            const order = data.orders.find((item) => item.id === paymentDetailButton.dataset.viewPayment);
+            if (order) openPaymentDocument(data, order);
+            return;
+        }
         if (statusFilterButton) {
             document.querySelectorAll("[data-status-filter]").forEach((item) => item.classList.remove("active"));
             statusFilterButton.classList.add("active");
