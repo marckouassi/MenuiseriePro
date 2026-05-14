@@ -1,4 +1,4 @@
-(function () {
+ (function () {
     if (document.body.dataset.page !== "dashboard" || !window.AppData) return;
 
     const data = AppData.load();
