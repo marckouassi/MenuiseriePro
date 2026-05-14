@@ -358,8 +358,9 @@ const initTables = () => {
 
 const statusClass = (status) => {
     const normalized = status.toLowerCase();
-    if (normalized.includes("non payé")) return "danger";
+    if (normalized.includes("non payé") || normalized.includes("absent")) return "danger";
     if (normalized.includes("partiellement")) return "progress";
+    if (normalized.includes("congé")) return "pending";
     if (normalized.includes("payé") || normalized.includes("livré") || normalized.includes("disponible") || normalized.includes("terminé") || normalized.includes("présent") || normalized.includes("validé")) return "done";
     if (normalized.includes("cours") || normalized.includes("fabrication") || normalized.includes("production")) return "progress";
     if (normalized.includes("manquant")) return "danger";
@@ -812,6 +813,11 @@ const businessDefaults = () => ({
         { id: "sup-atlas", name: "Atlas Matériaux", materials: "Contreplaqué, MDF, colle", contact: "+225 01 11 42 60", address: "Koumassi", email: "achats@atlas-materiaux.ci", purchases: 18, lastPurchase: "2026-05-06", total: 340000, notes: "Approvisionnement régulier en panneaux et consommables." },
         { id: "sup-colorbois", name: "ColorBois", materials: "Vernis mat, teintes, finitions", contact: "+225 05 70 30 42", address: "Marcory", email: "vente@colorbois.ci", purchases: 31, lastPurchase: "2026-05-04", total: 210000, notes: "Spécialiste finitions, vernis et produits de protection." },
     ],
+    employees: [
+        { id: "emp-awa", name: "Awa Diarra", role: "Chef d'atelier", salary: 420000, currentStatus: "Présent", tasks: "Contrôle qualité", phone: "+225 07 14 32 90", hiredAt: "2024-01-15", leaveUntil: "", attendance: [{ date: "2026-05-08", status: "Présent", note: "Contrôle qualité" }, { date: "2026-05-07", status: "Présent", note: "Validation cuisine" }, { date: "2026-05-06", status: "Absent", note: "Rendez-vous personnel" }, { date: "2026-05-05", status: "Présent", note: "Supervision atelier" }] },
+        { id: "emp-yao", name: "Yao Serge", role: "Menuisier", salary: 280000, currentStatus: "Présent", tasks: "Cuisine Kouadio", phone: "+225 05 44 19 80", hiredAt: "2023-09-04", leaveUntil: "", attendance: [{ date: "2026-05-08", status: "Présent", note: "Cuisine Kouadio" }, { date: "2026-05-07", status: "Présent", note: "Découpe panneaux" }, { date: "2026-05-06", status: "Présent", note: "Assemblage" }, { date: "2026-05-05", status: "Congé", note: "Congé validé" }] },
+        { id: "emp-nadia", name: "Nadia B.", role: "Commerciale", salary: 310000, currentStatus: "Absent", tasks: "Relances devis", phone: "+225 01 72 66 12", hiredAt: "2024-06-10", leaveUntil: "2026-05-10", attendance: [{ date: "2026-05-08", status: "Absent", note: "Absence signalée" }, { date: "2026-05-07", status: "Congé", note: "Congé administratif" }, { date: "2026-05-06", status: "Présent", note: "Relances devis" }, { date: "2026-05-05", status: "Présent", note: "Prospection" }] },
+    ],
     expenses: [
         { id: "exp-1", date: "2026-05-08", type: "Dépense", description: "Achat chêne", amount: 980000, status: "Comptabilisé", supplierId: "sup-bois-ivoire", materials: "Chêne massif" },
         { id: "exp-2", date: "2026-05-06", type: "Dépense", description: "MDF et colle", amount: 340000, status: "Comptabilisé", supplierId: "sup-atlas", materials: "MDF, colle" },
@@ -840,6 +846,7 @@ const saveBusiness = (data) => localStorage.setItem(businessStorageKey, JSON.str
 const getClient = (data, id) => data.clients.find((item) => item.id === id) || { name: "Client inconnu" };
 const getProduct = (data, id) => data.products.find((item) => item.id === id) || { name: "Produit inconnu", materials: [], price: 0 };
 const getSupplier = (data, id) => data.suppliers?.find((item) => item.id === id) || { name: "Fournisseur inconnu", materials: "-", contact: "-" };
+const getEmployee = (data, id) => data.employees?.find((item) => item.id === id) || { name: "Employé inconnu", role: "-", attendance: [] };
 const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#039;" }[char]));
 const paidForOrder = (data, orderId) => data.payments.filter((item) => item.orderId === orderId).reduce((sum, item) => sum + Number(item.amount || 0), 0);
 const stockStatus = (item) => Number(item.quantity) <= 0 ? "Manquant" : Number(item.quantity) <= Number(item.threshold || 0) ? "Stock faible" : "Disponible";
@@ -993,6 +1000,18 @@ const supplierDetailHtml = (data, supplier) => {
     return `<div class="detail-summary-grid"><article><span>Fournisseur</span><strong>${escapeHtml(supplier.name)}</strong><small>${escapeHtml(supplier.contact)}</small></article><article><span>Achats</span><strong>${supplier.purchases || purchases.length}</strong><small>Dernier achat : ${formatDate(supplier.lastPurchase)}</small></article><article><span>Total fourni</span><strong>${money(total)}</strong><small>${escapeHtml(supplier.materials)}</small></article></div><div class="detail-info-grid"><p><b>Contact :</b> ${escapeHtml(supplier.contact)}</p><p><b>Email :</b> ${escapeHtml(supplier.email || "-")}</p><p><b>Adresse :</b> ${escapeHtml(supplier.address || "-")}</p><p><b>Note :</b> ${escapeHtml(supplier.notes || "-")}</p></div><h3>Ce qu'il a fourni</h3><div class="table-wrap"><table class="detail-table"><thead><tr><th>Date</th><th>Matériaux</th><th>Description</th><th>Montant</th><th>Statut</th></tr></thead><tbody>${purchases.map((purchase) => `<tr><td>${formatDate(purchase.date)}</td><td>${escapeHtml(purchase.materials || supplier.materials)}</td><td>${escapeHtml(purchase.description)}</td><td>${money(purchase.amount)}</td><td>${statusBadge(purchase.status)}</td></tr>`).join("") || `<tr><td>${formatDate(supplier.lastPurchase)}</td><td>${escapeHtml(supplier.materials)}</td><td>Approvisionnement fournisseur</td><td>${money(supplier.total)}</td><td>${statusBadge("Comptabilisé")}</td></tr>`}</tbody></table></div>`;
 };
 
+
+const employeeDetailHtml = (employee) => {
+    const attendance = Array.isArray(employee.attendance) ? employee.attendance : [];
+    const presentCount = attendance.filter((item) => item.status === "Présent").length;
+    const absentCount = attendance.filter((item) => item.status === "Absent").length;
+    const leaveCount = attendance.filter((item) => item.status === "Congé").length;
+    const leaveText = employee.currentStatus === "Congé" || employee.leaveUntil
+        ? `Oui${employee.leaveUntil ? `, jusqu'au ${formatDate(employee.leaveUntil)}` : ""}`
+        : "Non";
+    return `<div class="detail-summary-grid"><article><span>Employé</span><strong>${escapeHtml(employee.name)}</strong><small>${escapeHtml(employee.role)}</small></article><article><span>Statut actuel</span><strong>${statusBadge(employee.currentStatus || "Présent")}</strong><small>En congé : ${escapeHtml(leaveText)}</small></article><article><span>Salaire</span><strong>${money(employee.salary)}</strong><small>Depuis le ${formatDate(employee.hiredAt)}</small></article></div><div class="detail-info-grid"><p><b>Téléphone :</b> ${escapeHtml(employee.phone || "-")}</p><p><b>Tâches assignées :</b> ${escapeHtml(employee.tasks || "-")}</p><p><b>Présences :</b> ${presentCount}</p><p><b>Absences :</b> ${absentCount} · <b>Congés :</b> ${leaveCount}</p></div><h3>Liste de présence, absence et congé</h3><div class="table-wrap"><table class="detail-table"><thead><tr><th>Date</th><th>Statut</th><th>Observation / tâche</th></tr></thead><tbody>${attendance.map((item) => `<tr><td>${formatDate(item.date)}</td><td>${statusBadge(item.status)}</td><td>${escapeHtml(item.note || "-")}</td></tr>`).join("") || `<tr><td colspan="3">Aucun historique de présence enregistré.</td></tr>`}</tbody></table></div>`;
+};
+
 const paymentDocumentHtml = (data, order) => {
     const client = getClient(data, order.clientId);
     const product = getProduct(data, order.productId);
@@ -1071,6 +1090,14 @@ const renderOrders = (data) => {
 };
 
 
+
+const renderEmployees = (data) => {
+    if (currentPage !== "employes") return;
+    if (!Array.isArray(data.employees)) data.employees = businessDefaults().employees;
+    const tbody = document.querySelector("[data-table] tbody");
+    if (tbody) tbody.innerHTML = data.employees.map((employee) => `<tr><td>${escapeHtml(employee.name)}</td><td>${escapeHtml(employee.role)}</td><td>${money(employee.salary)}</td><td>${statusBadge(employee.currentStatus || "Présent")}</td><td>${escapeHtml(employee.tasks || "-")}</td><td><button class="mini-btn" data-view-employee="${employee.id}">Voir détails</button></td></tr>`).join("");
+};
+
 const renderSuppliers = (data) => {
     if (currentPage !== "fournisseurs") return;
     if (!Array.isArray(data.suppliers)) data.suppliers = businessDefaults().suppliers;
@@ -1130,6 +1157,7 @@ const renderBusiness = (data) => {
     renderStocks(data);
     renderProducts(data);
     renderClients(data);
+    renderEmployees(data);
     renderSuppliers(data);
     renderOrders(data);
     renderPayments(data);
@@ -1205,6 +1233,12 @@ const bindBusinessActions = (data) => {
                     data.clients.unshift({ id: makeId("cli"), name: values[0], phone: values[1], email: values[2], address: values[3], type: "Particulier" });
                     logAction(data, "Client créé", values[0]);
                 }
+                if (currentPage === "employes" && form.dataset.simpleToast !== undefined) {
+                    const values = Array.from(form.querySelectorAll("input, textarea")).map((field) => field.value.trim());
+                    if (!Array.isArray(data.employees)) data.employees = [];
+                    data.employees.unshift({ id: makeId("emp"), name: values[0], role: values[1], salary: parseMoney(values[2]), currentStatus: "Présent", tasks: values[3] || "À assigner", phone: "À renseigner", hiredAt: todayIso(), leaveUntil: "", attendance: [{ date: todayIso(), status: "Présent", note: values[3] || "Premier jour enregistré" }] });
+                    logAction(data, "Employé créé", values[0]);
+                }
                 if (currentPage === "fournisseurs" && form.dataset.simpleToast !== undefined) {
                     const values = Array.from(form.querySelectorAll("input")).map((field) => field.value.trim());
                     if (!Array.isArray(data.suppliers)) data.suppliers = [];
@@ -1237,6 +1271,7 @@ const bindBusinessActions = (data) => {
         const statusFilterButton = event.target.closest("[data-status-filter]");
         const clientDetailButton = event.target.closest("[data-view-client]");
         const supplierDetailButton = event.target.closest("[data-view-supplier]");
+        const employeeDetailButton = event.target.closest("[data-view-employee]");
         const paymentDetailButton = event.target.closest("[data-view-payment]");
         if (clientDetailButton) {
             const client = getClient(data, clientDetailButton.dataset.viewClient);
@@ -1246,6 +1281,11 @@ const bindBusinessActions = (data) => {
         if (supplierDetailButton) {
             const supplier = getSupplier(data, supplierDetailButton.dataset.viewSupplier);
             openDetailModal(`Détails du fournisseur - ${supplier.name}`, supplierDetailHtml(data, supplier));
+            return;
+        }
+        if (employeeDetailButton) {
+            const employee = getEmployee(data, employeeDetailButton.dataset.viewEmployee);
+            openDetailModal(`Détails de l'employé - ${employee.name}`, employeeDetailHtml(employee));
             return;
         }
         if (paymentDetailButton) {
