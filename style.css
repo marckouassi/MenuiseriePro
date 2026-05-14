@@ -1630,3 +1630,148 @@ body.dark .auth-card {
         font-size: 2.6rem;
     }
 }
+
+/* Fenêtres de détails clients/fournisseurs et calendrier interactif */
+.detail-modal {
+    width: min(980px, calc(100% - 32px));
+}
+
+.detail-card {
+    max-height: min(82vh, 760px);
+    overflow: auto;
+}
+
+.detail-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.detail-summary-grid article,
+.detail-list div,
+.calendar-transaction-list article {
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface-soft);
+}
+
+.detail-summary-grid span,
+.detail-list span,
+.calendar-transaction-list span {
+    display: block;
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.detail-summary-grid strong,
+.detail-list strong,
+.calendar-transaction-list strong {
+    display: block;
+    margin: 7px 0;
+}
+
+.detail-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 18px;
+    margin-bottom: 18px;
+}
+
+.detail-info-grid p {
+    margin: 0;
+    padding: 12px;
+    border-radius: var(--radius);
+    background: var(--surface-soft);
+}
+
+.detail-table {
+    min-width: 680px;
+}
+
+.detail-list,
+.calendar-transaction-list {
+    display: grid;
+    gap: 10px;
+}
+
+.calendar-mini #calendrier-grid {
+    grid-column: 1 / -1;
+}
+
+.calendar-heading {
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 800;
+    text-align: center;
+}
+
+#calendrier-grid button {
+    position: relative;
+    display: grid;
+    min-height: 42px;
+    place-items: center;
+    border-radius: var(--radius);
+    background: var(--surface-soft);
+    color: var(--ink);
+    cursor: pointer;
+}
+
+#calendrier-grid button span {
+    color: inherit;
+    font-size: 0.9rem;
+    font-weight: 800;
+}
+
+#calendrier-grid button b {
+    position: absolute;
+    top: 3px;
+    right: 4px;
+    display: grid;
+    min-width: 17px;
+    height: 17px;
+    place-items: center;
+    border-radius: 999px;
+    background: var(--wood);
+    color: var(--cream);
+    font-size: 0.68rem;
+}
+
+#calendrier-grid button.has-transactions {
+    border: 1px solid rgba(167, 102, 63, 0.42);
+    box-shadow: inset 0 0 0 1px rgba(167, 102, 63, 0.08);
+}
+
+#calendrier-grid button.active {
+    background: var(--black);
+    color: var(--cream);
+}
+
+.calendar-details {
+    grid-column: 1 / -1;
+    margin-top: 14px;
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface-soft);
+}
+
+.calendar-details h3 {
+    text-transform: capitalize;
+}
+
+.calendar-balance {
+    margin: 12px 0 0;
+    color: var(--ink);
+    font-weight: 800;
+}
+
+@media (max-width: 720px) {
+    .detail-summary-grid,
+    .detail-info-grid {
+        grid-template-columns: 1fr;
+    }
+}
