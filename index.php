@@ -302,38 +302,81 @@ new Chart(ctx, {
   },
   options: { responsive: true, plugins: { legend: { display: false } } }
 });
+<<<<<<< HEAD:index.php
 // Calendrier
+=======
+
+// Calendrier dynamique : chaque date ouvre les transactions du jour.
+const businessFallback = {
+  payments: [
+    { orderId: 'MP-238', amount: 1850000, date: '2026-05-08', method: 'Virement', note: 'Solde cuisine complète' },
+    { orderId: 'MP-239', amount: 150000, date: '2026-05-08', method: 'Espèces', note: 'Acompte armoire' }
+  ],
+  expenses: [
+    { date: '2026-05-08', type: 'Dépense', description: 'Achat chêne', amount: 980000, status: 'Comptabilisé' },
+    { date: '2026-05-06', type: 'Dépense', description: 'MDF et colle', amount: 340000, status: 'Comptabilisé' },
+    { date: '2026-05-04', type: 'Dépense', description: 'Vernis mat', amount: 210000, status: 'Comptabilisé' }
+  ]
+};
+const businessData = (() => {
+  try {
+    return { ...businessFallback, ...(JSON.parse(localStorage.getItem('menuiseriepro-business-v2')) || {}) };
+  } catch {
+    return businessFallback;
+  }
+})();
+const formatMoney = value => `${Number(value || 0).toLocaleString('fr-FR')} FCFA`;
+const toIsoDate = date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+const transactionsForDate = isoDate => [
+  ...(businessData.payments || []).filter(pay => pay.date === isoDate).map(pay => ({ type: 'Recette', label: `${pay.note || 'Paiement client'} (${pay.orderId})`, amount: pay.amount, status: pay.method || 'Payé' })),
+  ...(businessData.expenses || []).filter(exp => exp.date === isoDate).map(exp => ({ type: exp.type || 'Dépense', label: exp.description, amount: -Math.abs(Number(exp.amount || 0)), status: exp.status || 'Comptabilisé' }))
+];
+>>>>>>> f84d6b7402684e5695432cf7033c646a2ad514f8:index.html
 const today = new Date();
 const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).getDay();
-const daysInMonth = new Date(today.getFullYear(), today.getMonth()+1, 0).getDate();
+const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
 const grid = document.getElementById('calendrier-grid');
+const calendarPanel = grid.closest('.panel');
+const detailPanel = document.createElement('div');
+detailPanel.className = 'calendar-details';
+calendarPanel.appendChild(detailPanel);
+grid.innerHTML = '';
 grid.style.display = 'grid';
 grid.style.gridTemplateColumns = 'repeat(7, 1fr)';
 grid.style.gap = '4px';
 ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].forEach(j => {
   const h = document.createElement('div');
   h.textContent = j;
-  h.style.fontWeight = 'bold';
-  h.style.textAlign = 'center';
-  h.style.fontSize = '12px';
+  h.className = 'calendar-heading';
   grid.appendChild(h);
 });
+const showTransactions = (date) => {
+  const isoDate = toIsoDate(date);
+  const rows = transactionsForDate(isoDate);
+  grid.querySelectorAll('button').forEach(button => button.classList.toggle('active', button.dataset.date === isoDate));
+  const balance = rows.reduce((sum, row) => sum + Number(row.amount || 0), 0);
+  detailPanel.innerHTML = `<h3>${date.toLocaleDateString('fr-FR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}</h3>${rows.length ? `<div class="calendar-transaction-list">${rows.map(row => `<article><span>${row.type}</span><strong>${row.label}</strong><small>${row.status} · ${formatMoney(Math.abs(row.amount))}</small></article>`).join('')}</div><p class="calendar-balance">Solde du jour : <b>${formatMoney(balance)}</b></p>` : '<p>Aucune transaction enregistrée pour cette date.</p>'}`;
+};
 const offset = (firstDay === 0 ? 6 : firstDay - 1);
-for(let i=0; i<offset; i++) grid.appendChild(document.createElement('div'));
-for(let d=1; d<=daysInMonth; d++) {
-  const cell = document.createElement('div');
-  cell.textContent = d;
-  cell.style.textAlign = 'center';
-  cell.style.padding = '4px';
-  cell.style.borderRadius = '4px';
-  if(d === today.getDate()) {
-    cell.style.background = '#b87333';
-    cell.style.color = '#fff';
-    cell.style.fontWeight = 'bold';
-  }
+for (let i = 0; i < offset; i++) grid.appendChild(document.createElement('div'));
+for (let d = 1; d <= daysInMonth; d++) {
+  const date = new Date(today.getFullYear(), today.getMonth(), d);
+  const isoDate = toIsoDate(date);
+  const rows = transactionsForDate(isoDate);
+  const cell = document.createElement('button');
+  cell.type = 'button';
+  cell.dataset.date = isoDate;
+  cell.className = rows.length ? 'has-transactions' : '';
+  cell.innerHTML = `<span>${d}</span>${rows.length ? `<b>${rows.length}</b>` : ''}`;
+  cell.addEventListener('click', () => showTransactions(date));
   grid.appendChild(cell);
 }
+<<<<<<< HEAD:index.php
     </script>
     <script src="index.js"></script>
+=======
+showTransactions(today);
+</script>
+>>>>>>> f84d6b7402684e5695432cf7033c646a2ad514f8:index.html
 </body>
 </html>
