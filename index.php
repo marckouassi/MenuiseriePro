@@ -302,36 +302,7 @@ new Chart(ctx, {
   },
   options: { responsive: true, plugins: { legend: { display: false } } }
 });
-<<<<<<< HEAD:index.php
 // Calendrier
-=======
-
-// Calendrier dynamique : chaque date ouvre les transactions du jour.
-const businessFallback = {
-  payments: [
-    { orderId: 'MP-238', amount: 1850000, date: '2026-05-08', method: 'Virement', note: 'Solde cuisine complète' },
-    { orderId: 'MP-239', amount: 150000, date: '2026-05-08', method: 'Espèces', note: 'Acompte armoire' }
-  ],
-  expenses: [
-    { date: '2026-05-08', type: 'Dépense', description: 'Achat chêne', amount: 980000, status: 'Comptabilisé' },
-    { date: '2026-05-06', type: 'Dépense', description: 'MDF et colle', amount: 340000, status: 'Comptabilisé' },
-    { date: '2026-05-04', type: 'Dépense', description: 'Vernis mat', amount: 210000, status: 'Comptabilisé' }
-  ]
-};
-const businessData = (() => {
-  try {
-    return { ...businessFallback, ...(JSON.parse(localStorage.getItem('menuiseriepro-business-v2')) || {}) };
-  } catch {
-    return businessFallback;
-  }
-})();
-const formatMoney = value => `${Number(value || 0).toLocaleString('fr-FR')} FCFA`;
-const toIsoDate = date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-const transactionsForDate = isoDate => [
-  ...(businessData.payments || []).filter(pay => pay.date === isoDate).map(pay => ({ type: 'Recette', label: `${pay.note || 'Paiement client'} (${pay.orderId})`, amount: pay.amount, status: pay.method || 'Payé' })),
-  ...(businessData.expenses || []).filter(exp => exp.date === isoDate).map(exp => ({ type: exp.type || 'Dépense', label: exp.description, amount: -Math.abs(Number(exp.amount || 0)), status: exp.status || 'Comptabilisé' }))
-];
->>>>>>> f84d6b7402684e5695432cf7033c646a2ad514f8:index.html
 const today = new Date();
 const firstDay = new Date(today.getFullYear(), today.getMonth(), 1).getDay();
 const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
@@ -371,12 +342,7 @@ for (let d = 1; d <= daysInMonth; d++) {
   cell.addEventListener('click', () => showTransactions(date));
   grid.appendChild(cell);
 }
-<<<<<<< HEAD:index.php
     </script>
     <script src="index.js"></script>
-=======
-showTransactions(today);
-</script>
->>>>>>> f84d6b7402684e5695432cf7033c646a2ad514f8:index.html
 </body>
 </html>
