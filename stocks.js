@@ -1,47 +1,39 @@
 (function () {
-    if (document.body.dataset.page !== "stocks" || !window.AppData) return;
-
-    const data = AppData.load();
-    const tbody = document.querySelector("[data-table] tbody");
-
-    const stockStatus = (item) => {
-        if (Number(item.quantity) <= 0) return "Manquant";
-        if (Number(item.quantity) <= Number(item.threshold || 0)) return "Stock faible";
-        return "Disponible";
-    };
-
-    const statusClass = (status) => status === "Manquant" ? "danger" : status === "Stock faible" ? "pending" : "done";
-
-    if (tbody) {
-        tbody.innerHTML = data.stock.map((item) => {
-            const max = Math.max(Number(item.entries || 0), Number(item.quantity || 0), Number(item.threshold || 0), 1);
-            const percent = Math.min(100, Math.round((Number(item.quantity || 0) / max) * 100));
-            const status = stockStatus(item);
-            return `
-                <tr class="${status === "Disponible" ? "" : "stock-alert-row"}">
-                    <td>${item.name}</td>
-                    <td>
-                        <span>${item.quantity} ${item.unit}</span>
-                        <span class="stock-progress" aria-hidden="true"><span data-stock-width="${percent}"></span></span>
-                    </td>
-                    <td>${item.supplier}</td>
-                    <td>${item.entries || 0} ${item.unit}</td>
-                    <td>${item.outputs || 0} ${item.unit}</td>
-                    <td><span class="status ${statusClass(status)}">${status}</span></td>
-                    <td><button class="mini-btn" data-stock-adjust="${item.id}">Entrée</button></td>
-                </tr>
-            `;
-        }).join("");
-    }
-
-    document.querySelectorAll("[data-stock-width]").forEach((bar) => {
-        const width = bar.dataset.stockWidth;
-        bar.style.width = "0%";
-        requestAnimationFrame(() => {
-            bar.style.width = `${width}%`;
-        });
-    });
+    if (document.body.dataset.page !== "stocks") return;
 
     const update = document.querySelector(".page-update");
-    if (update) update.textContent = `Mis à jour : ${new Date().toLocaleDateString("fr-FR")}`;
+
+    if (update) {
+        update.textContent = `Mis à jour : ${new Date().toLocaleDateString("fr-FR")}`;
+    }
+
+    const searchInput = document.querySelector("[data-table-search]");
+    const statusFilter = document.querySelector("[data-table-filter]");
+    const table = document.querySelector("[data-table]");
+
+    function filtrerTableau() {
+        if (!table) return;
+
+        const recherche = searchInput ? searchInput.value.toLowerCase() : "";
+        const statut = statusFilter ? statusFilter.value.toLowerCase() : "";
+
+        const rows = table.querySelectorAll("tbody tr");
+
+        rows.forEach((row) => {
+            const texte = row.textContent.toLowerCase();
+
+            const correspondRecherche = texte.includes(recherche);
+            const correspondStatut = !statut || texte.includes(statut);
+
+            row.style.display = correspondRecherche && correspondStatut ? "" : "none";
+        });
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener("input", filtrerTableau);
+    }
+
+    if (statusFilter) {
+        statusFilter.addEventListener("change", filtrerTableau);
+    }
 })();
